@@ -19,24 +19,24 @@
 
 #define FileName(str) Log::splitFileName(str)
 
-#define LOG_DEBUG(fmt, ...)                                                                            \
-    Log::log_header(LOG_LEVEL_DEBUG);                                                                  \
+#define LOG_DEBUG(fmt, ...)                                                                       \
+    Log::log_header(LOG_LEVEL_DEBUG);                                                             \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_WARN(fmt, ...)                                                                             \
-    Log::log_header(LOG_LEVEL_WARN);                                                                   \
+#define LOG_WARN(fmt, ...)                                                                        \
+    Log::log_header(LOG_LEVEL_WARN);                                                              \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_INFO(fmt, ...)                                                                             \
-    Log::log_header(LOG_LEVEL_INFO);                                                                   \
+#define LOG_INFO(fmt, ...)                                                                        \
+    Log::log_header(LOG_LEVEL_INFO);                                                              \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_ERROR(fmt, ...)                                                                            \
-    Log::log_header(LOG_LEVEL_ERROR);                                                                  \
+#define LOG_ERROR(fmt, ...)                                                                       \
+    Log::log_header(LOG_LEVEL_ERROR);                                                             \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_FATAL(fmt, ...)                                                                            \
-    Log::log_header(LOG_LEVEL_FATAL);                                                                  \
+#define LOG_FATAL(fmt, ...)                                                                       \
+    Log::log_header(LOG_LEVEL_FATAL);                                                             \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
 #define LOG_PRINT(fmt, ...)             \
@@ -65,7 +65,6 @@ typedef enum LOG_LEVEL {
 class Log {
 
 public:
-
     /*
      * @function 以网络结构显示数据
      * @param data 数据首地址
@@ -100,7 +99,6 @@ public:
     static const char *splitFileName(const std::string &fileName);
 
 private:
-
     /*
      * @function 获得level的打印名
      * @param level level级别
@@ -111,7 +109,6 @@ private:
      * @function 打印当前时间
      */
     static void print_currentTime();
-
 };
 
 #endif //CLION_CPPSTUDY_LOG_HPP
