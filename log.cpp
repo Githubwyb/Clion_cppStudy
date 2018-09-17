@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <string>
-#include <c++/cstdarg>
-#include <c++/cstring>
+#include <stdarg.h>
+#include <string.h>
+#include <unistd.h>
 
 void Log::log_print(const char *fmt, ...) {
     va_list arg;
