@@ -7,19 +7,14 @@
 #include "log.hpp"
 #include <stdio.h>
 #include <time.h>
-#include <string>
-#include <c++/cstdarg>
-#include <c++/cstring>
+#include <stdarg.h>
+#include <string.h>
 
 void Log::log_print(const char *fmt, ...) {
     va_list arg;
-    char data[1024] = {0};
-
     va_start(arg, fmt);
-    vsnprintf((char *) data, 1024, fmt, arg);
+    vprintf(fmt, arg);
     va_end(arg);
-
-    printf("%s", data);
 }
 
 /*
@@ -35,37 +30,37 @@ void Log::log_hex(const void *data, int length) {
     int i = 0, j = 0;
     const char *pData = (const char *) data;
 
-    printf("    ");
+    log_print("    ");
     for (i = 0; i < 16; i++) {
-        printf("%X  ", i);
+        log_print("%X  ", i);
     }
-    printf("    ");
+    log_print("    ");
     for (i = 0; i < 16; i++) {
-        printf("%X", i);
+        log_print("%X", i);
     }
 
-    printf("\r\n");
+    log_print("\r\n");
 
     for (i = 0; i < length; i += 16) {
-        printf("%02d  ", i / 16 + 1);
+        log_print("%02d  ", i / 16 + 1);
         for (j = i; j < i + 16 && j < length; j++) {
-            printf("%02x ", pData[j] & 0xff);
+            log_print("%02x ", pData[j] & 0xff);
         }
         if (j == length && length % 16) {
             for (j = 0; j < (16 - length % 16); j++) {
-                printf("   ");
+                log_print("   ");
             }
         }
-        printf("    ");
+        log_print("    ");
         for (j = i; j < i + 16 && j < length; j++) {
             if (pData[j] < 32 || pData[j] >= 127) {
-                printf(".");
+                log_print(".");
             } else {
-                printf("%c", pData[j] & 0xff);
+                log_print("%c", pData[j] & 0xff);
             }
         }
 
-        printf("\r\n");
+        log_print("\r\n");
     }
 }
 
@@ -84,27 +79,27 @@ void Log::log_binary(const void *data, int length) {
 
     for (i = 0; i < length && i < MAX_PRINTED_BIN_LENGTH; i++) {
         sprintf(buf + i * 3, "%02x", point[i]);
-        buf[i * 3 + 2] = ' ';   //because sprintf will add a terminating null character at the end
+        buf[i * 3 + 2] = ' ';   //because slog_print will add a terminating null character at the end
     }
 
     if (i >= MAX_PRINTED_BIN_LENGTH) {
         sprintf(buf + i * 3, "%s", "......");
     }
 
-    printf("%s", buf);
-    printf("\r\n");
+    log_print("%s", buf);
+    log_print("\r\n");
 }
 
 void Log::log_header(LOG_LEVEL level) {
     print_currentTime();
-    printf("[%lu:%lu][%s]",
+    log_print("[%lu:%lu][%s]",
            (unsigned long int) getpid(),
            (unsigned long int) pthread_self(),
            getLevelString(level));
 }
 
-const char *Log::splitFileName(const std::string &x) {
-    const char *pChar = (char *)x.c_str();
+const char *Log::splitFileName(const char *fileName) {
+    const char *pChar = fileName;
     pChar = (strrchr(pChar, '/') ? strrchr(pChar, '/') + 1 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
     return pChar;
 }
@@ -134,7 +129,7 @@ const char *Log::getLevelString(LOG_LEVEL level) {
 void Log::print_currentTime() {
     time_t currentTime = time(nullptr);
     tm *currentTm = localtime(&currentTime);
-    printf("%4d-%02d-%02d %02d:%02d:%02d",
+    log_print("%4d-%02d-%02d %02d:%02d:%02d",
            currentTm->tm_year + 1900,
            currentTm->tm_mon,
            currentTm->tm_mday,

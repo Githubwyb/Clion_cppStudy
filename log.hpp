@@ -7,8 +7,6 @@
 #ifndef CLION_CPPSTUDY_LOG_HPP
 #define CLION_CPPSTUDY_LOG_HPP
 
-#include <string>
-
 #define DEBUG
 
 #define LOG_HEX(data, length) Log::log_hex(data, length)
@@ -96,7 +94,7 @@ public:
      * @function 切分文件名，将前面的斜杠去除
      * @param fileName 文件名
      */
-    static const char *splitFileName(const std::string &fileName);
+    static const char *splitFileName(const char *fileName);
 
 private:
     /*
