@@ -9,6 +9,8 @@
 #include <time.h>
 #include <stdarg.h>
 #include <string.h>
+#include <process.h>
+#include <pthread.h>
 
 void Log::log_print(const char *fmt, ...) {
     va_list arg;
