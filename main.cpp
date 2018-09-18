@@ -17,6 +17,6 @@ int main() {
     LOG_PRINT("Hello, world");
     PRINT("Hello, world\r\n");
     LOG_HEX("Hello, world", std::string("Hello, world").size());
-    LOG_BIN("Hello, world", std::string("Hello, world").size());
+    LOG_BIN("Hello, world5555555555555555555555555555555555", std::string("Hello, world5555555555555555555555555555555555").size());
     return 0;
 }

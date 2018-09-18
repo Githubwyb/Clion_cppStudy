@@ -9,7 +9,7 @@
 #include <time.h>
 #include <stdarg.h>
 #include <string.h>
-#include <process.h>
+#include <unistd.h>
 #include <pthread.h>
 
 void Log::log_print(const char *fmt, ...) {
@@ -73,28 +73,27 @@ void Log::log_hex(const void *data, int length) {
 #define MAX_PRINTED_BIN_LENGTH (32)
 
 void Log::log_binary(const void *data, int length) {
-    char buf[MAX_PRINTED_BIN_LENGTH * 3 + 2] = {0};
     const char *point = nullptr;
     int i = 0;
 
-    point = (const char *) data;
+    point = (const char *)data;
 
-    for (i = 0; i < length && i < MAX_PRINTED_BIN_LENGTH; i++) {
-        sprintf(buf + i * 3, "%02x", point[i]);
-        buf[i * 3 + 2] = ' ';   //because slog_print will add a terminating null character at the end
+    for (i = 0; i < length && i < MAX_PRINTED_BIN_LENGTH; i++)
+    {
+        log_print("%02x ", point[i]);
     }
 
-    if (i >= MAX_PRINTED_BIN_LENGTH) {
-        sprintf(buf + i * 3, "%s", "......");
+    if (i >= MAX_PRINTED_BIN_LENGTH)
+    {
+        log_print("......");
     }
 
-    log_print("%s", buf);
     log_print("\r\n");
 }
 
 void Log::log_header(LOG_LEVEL level) {
     print_currentTime();
-    log_print("[%lu:%lu][%s]",
+    log_print(" [%lu:%lu][%s]",
            (unsigned long int) getpid(),
            (unsigned long int) pthread_self(),
            getLevelString(level));
