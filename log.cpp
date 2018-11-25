@@ -132,7 +132,7 @@ void Log::print_currentTime() {
     tm *currentTm = localtime(&currentTime);
     log_print("%4d-%02d-%02d %02d:%02d:%02d",
            currentTm->tm_year + 1900,
-           currentTm->tm_mon,
+           currentTm->tm_mon + 1,
            currentTm->tm_mday,
            currentTm->tm_hour,
            currentTm->tm_min,
