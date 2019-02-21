@@ -7,11 +7,34 @@
 #include "log.hpp"
 
 #include <iostream>
-#include <vector>
+#include <exception>
 
 using namespace std;
-int main() {
-    LOG_INFO("Hello, main");
 
-    return 0;
+class Trace {
+    static int counter;
+    int objid;
+public:
+    Trace() {
+        objid = counter++;
+        cout << "Constructing Trace #" << objid << endl;
+        if (objid == 3)
+            throw 3;
+    }
+    ~Trace() {
+        cout << "Destructing Trace #" << objid << endl;
+    }
+};
+
+int Trace::counter = 0;
+
+int main() {
+    try {
+        Trace n1;
+        //Throws exception;
+        Trace array[5];
+        Trace n2; //Won't get here.
+    } catch (int i) {
+        cout << "Caught " << i << endl;
+    }
 }
