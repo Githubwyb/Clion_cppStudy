@@ -114,7 +114,7 @@ int main() {
         //赋值给距离矩阵
         LOG_INFO("%c--%c: %d", getChar(a), getChar(b), c);
         distance[a][b] = c;
-
+        //添加到路由表
         char tmp[2] = {getChar(a), getChar(b)};
         road[tmp] = string(tmp);
     }
@@ -122,19 +122,23 @@ int main() {
     for (int k = 0; k < 6; ++k) {
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < 6; ++j) {
+                //添加key
                 char tmp[3] = {getChar(i), getChar(j), 0x00};
+                //防止路径遗漏，补充路由表
                 if (distance[i][j] != -1 && road.count(tmp) == 0) {
                     road[tmp] = tmp;
                 }
-                //可通过k到达
+                //可通过k到达i且可通过k到达j
                 if (distance[i][k] != -1 && distance[k][j] != -1) {
+                    //ij之间没有通路或者当前计算的最短路径大于通过k到达的距离
                     if (distance[i][j] == -1 ||
                         distance[i][j] > distance[i][k] + distance[k][j]) {
+                        distance[i][j] = distance[i][k] + distance[k][j];
+                        //更新路由表
                         char tmp1[3] = {getChar(i), getChar(k), 0x00};
                         char tmp2[3] = {getChar(k), getChar(j), 0x00};
-                        distance[i][j] = distance[i][k] + distance[k][j];
                         string tmpRoad = road[tmp1];
-                        tmpRoad.pop_back();
+                        tmpRoad.pop_back();     //防止重复路由
                         road[tmp] = tmpRoad + road[tmp2];
                     }
                 }
