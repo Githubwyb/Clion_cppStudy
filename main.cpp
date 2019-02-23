@@ -106,8 +106,7 @@ int main() {
         distance[i][i] = 0;
     }
 
-    map<char, string> road;
-    road['A'] = "AA";   //自己到自己
+    map<char[2], string> road;
     while (readFile(inputStr) == 0) {
         int a = getIndex(inputStr[0]);      //第一个点
         int b = getIndex(inputStr[2]);      //第二个点
@@ -117,38 +116,13 @@ int main() {
         distance[a][b] = c;
     }
 
-    while (true) {
-        bool change = false;
+    for (int k = 0; k < 6; ++k) {
         for (int i = 0; i < 6; ++i) {
-            //U集合中A点可到达的点i
-            if (distance[0][i] != -1) {
-                //将路径加进去
-                if (road.count(getChar(i)) == 0) {
-                    string roadStr = "A";
-                    road[getChar(i)] = roadStr + getChar(i);
-                }
+            for (int j = 0; j < 6; ++j) {
+                if (distance[i][k] != -1 && distance[k][j] != -1) {
 
-                for (int j = 0; j < 6; ++j) {
-                    //筛选出i点可到达的j点
-                    if (distance[i][j] != -1) {
-                        //A点不可到达j点或者当前已计算的距离大于A从i到达j的距离
-                        if (distance[0][j] == -1 ||
-                            distance[0][j] > (distance[0][i] + distance[i][j])) {
-                            change = true;
-                            //更新距离表
-                            distance[0][j] = distance[0][i] + distance[i][j];
-                            //更新路径表
-                            string tmpStr = road[getChar(i)];
-                            road[getChar(j)] = tmpStr + getChar(j);
-                        }
-                    }
                 }
             }
-        }
-
-        //一轮没有改变则证明已经计算完毕
-        if (!change) {
-            break;
         }
     }
 
