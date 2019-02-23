@@ -87,9 +87,6 @@ char getChar(int a) {
     }
 }
 
-//用于判断U集合中是否还有点
-#define over (u[0] || u[1] || u[2] || u[3] || u[4] || u[5])
-
 int main() {
     //由于已知点数量，第一行废掉
     string inputStr = "";
@@ -118,17 +115,14 @@ int main() {
         //赋值给距离矩阵
         LOG_INFO("%c--%c: %d", getChar(a), getChar(b), c);
         distance[a][b] = c;
-        distance[b][a] = c;
     }
 
-    //U集初始化为true
-    bool u[6] = {true, true, true, true, true, true};
-    while (over) {
+    while (true) {
+        bool change = false;
         for (int i = 0; i < 6; ++i) {
-            //可达A点的U集合中的点i
-            if (u[i] && distance[i][0] != -1) {
-                u[i] = false;
-                //将直达的路径加进去
+            //U集合中A点可到达的点i
+            if (distance[0][i] != -1) {
+                //将路径加进去
                 if (road.count(getChar(i)) == 0) {
                     string roadStr = "A";
                     road[getChar(i)] = roadStr + getChar(i);
@@ -136,13 +130,13 @@ int main() {
 
                 for (int j = 0; j < 6; ++j) {
                     //筛选出i点可到达的j点
-                    if (distance[j][i] != -1) {
-                        //如果j点不可到达A点或者当前距离大于A从i到达j的距离
-                        if (distance[j][0] == -1 ||
-                            distance[j][0] > (distance[j][i] + distance[i][0])) {
+                    if (distance[i][j] != -1) {
+                        //A点不可到达j点或者当前已计算的距离大于A从i到达j的距离
+                        if (distance[0][j] == -1 ||
+                            distance[0][j] > (distance[0][i] + distance[i][j])) {
+                            change = true;
                             //更新距离表
-                            distance[j][0] = distance[j][i] + distance[i][0];
-                            distance[0][j] = distance[j][i] + distance[i][0];
+                            distance[0][j] = distance[0][i] + distance[i][j];
                             //更新路径表
                             string tmpStr = road[getChar(i)];
                             road[getChar(j)] = tmpStr + getChar(j);
@@ -151,12 +145,24 @@ int main() {
                 }
             }
         }
+
+        //一轮没有改变则证明已经计算完毕
+        if (!change) {
+            break;
+        }
+    }
+
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j) {
+            PRINT("%d\t", distance[i][j]);
+        }
+        PRINT("\r\n");
     }
 
     //打印结果
     PRINT("\r\n");
     LOG_INFO("Result:");
     for (int m = 0; m < 6; ++m) {
-        LOG_INFO("%c %s: %d", getChar(m), road[getChar(m)].c_str(), distance[m][0]);
+        LOG_INFO("%c %s: %d", getChar(m), road[getChar(m)].c_str(), distance[0][m]);
     }
 }
