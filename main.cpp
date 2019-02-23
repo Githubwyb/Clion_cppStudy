@@ -122,7 +122,7 @@ int main() {
     for (int k = 0; k < 6; ++k) {
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < 6; ++j) {
-                char tmp[2] = {getChar(i), getChar(j)};
+                char tmp[3] = {getChar(i), getChar(j), 0x00};
                 if (distance[i][j] != -1 && road.count(tmp) == 0) {
                     road[tmp] = tmp;
                 }
@@ -130,10 +130,12 @@ int main() {
                 if (distance[i][k] != -1 && distance[k][j] != -1) {
                     if (distance[i][j] == -1 ||
                         distance[i][j] > distance[i][k] + distance[k][j]) {
-                        char tmp1[2] = {getChar(i), getChar(k)};
-                        char tmp2[2] = {getChar(k), getChar(j)};
+                        char tmp1[3] = {getChar(i), getChar(k), 0x00};
+                        char tmp2[3] = {getChar(k), getChar(j), 0x00};
                         distance[i][j] = distance[i][k] + distance[k][j];
-                        road[tmp] = road[tmp1] + road[tmp2];
+                        string tmpRoad = road[tmp1];
+                        tmpRoad.pop_back();
+                        road[tmp] = tmpRoad + road[tmp2];
                     }
                 }
             }
@@ -151,7 +153,7 @@ int main() {
     PRINT("\r\n");
     LOG_INFO("Result:");
     for (int m = 0; m < 6; ++m) {
-        char tmp[2] = {getChar(m), 0x00};
+        char tmp[3] = {getChar(m), 0x00, 0x00};
         for (int i = 0; i < 6; ++i) {
             tmp[1] = getChar(i);
             LOG_INFO("%c->%c %s: %d", tmp[0], tmp[1], road[tmp].c_str(), distance[m][i]);
