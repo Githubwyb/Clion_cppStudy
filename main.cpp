@@ -106,7 +106,7 @@ int main() {
         distance[i][i] = 0;
     }
 
-    map<char[2], string> road;
+    map<string, string> road;
     while (readFile(inputStr) == 0) {
         int a = getIndex(inputStr[0]);      //第一个点
         int b = getIndex(inputStr[2]);      //第二个点
@@ -114,13 +114,27 @@ int main() {
         //赋值给距离矩阵
         LOG_INFO("%c--%c: %d", getChar(a), getChar(b), c);
         distance[a][b] = c;
+
+        char tmp[2] = {getChar(a), getChar(b)};
+        road[tmp] = string(tmp);
     }
 
     for (int k = 0; k < 6; ++k) {
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < 6; ++j) {
+                char tmp[2] = {getChar(i), getChar(j)};
+                if (distance[i][j] != -1 && road.count(tmp) == 0) {
+                    road[tmp] = tmp;
+                }
+                //可通过k到达
                 if (distance[i][k] != -1 && distance[k][j] != -1) {
-
+                    if (distance[i][j] == -1 ||
+                        distance[i][j] > distance[i][k] + distance[k][j]) {
+                        char tmp1[2] = {getChar(i), getChar(k)};
+                        char tmp2[2] = {getChar(k), getChar(j)};
+                        distance[i][j] = distance[i][k] + distance[k][j];
+                        road[tmp] = road[tmp1] + road[tmp2];
+                    }
                 }
             }
         }
@@ -137,6 +151,10 @@ int main() {
     PRINT("\r\n");
     LOG_INFO("Result:");
     for (int m = 0; m < 6; ++m) {
-        LOG_INFO("%c %s: %d", getChar(m), road[getChar(m)].c_str(), distance[0][m]);
+        char tmp[2] = {getChar(m), 0x00};
+        for (int i = 0; i < 6; ++i) {
+            tmp[1] = getChar(i);
+            LOG_INFO("%c->%c %s: %d", tmp[0], tmp[1], road[tmp].c_str(), distance[m][i]);
+        }
     }
 }
