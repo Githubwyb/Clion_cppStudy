@@ -107,7 +107,6 @@ int main() {
     }
 
     map<char, string> road;
-    road['A'] = "AA";   //自己到自己
     while (readFile(inputStr) == 0) {
         int a = getIndex(inputStr[0]);      //第一个点
         int b = getIndex(inputStr[2]);      //第二个点
