@@ -148,15 +148,14 @@ int main() {
             }
         }
     }
-
+    //打印距离表
     for (int i = 0; i < 6; ++i) {
         for (int j = 0; j < 6; ++j) {
             PRINT("%d\t", distance[i][j]);
         }
         PRINT("\r\n");
     }
-
-    //打印结果
+    //打印距离表
     PRINT("\r\n");
     LOG_INFO("Result:");
     for (int m = 0; m < 6; ++m) {
