@@ -106,7 +106,7 @@ int main() {
         distance[i][i] = 0;
     }
 
-    map<char, string> road;
+    map<char, string> road;                 //路由表定义
     while (readFile(inputStr) == 0) {
         int a = getIndex(inputStr[0]);      //第一个点
         int b = getIndex(inputStr[2]);      //第二个点
@@ -136,7 +136,7 @@ int main() {
                             change = true;
                             //更新距离表
                             distance[0][j] = distance[0][i] + distance[i][j];
-                            //更新路径表
+                            //更新路由表
                             string tmpStr = road[getChar(i)];
                             road[getChar(j)] = tmpStr + getChar(j);
                         }
@@ -144,21 +144,19 @@ int main() {
                 }
             }
         }
-
         //一轮没有改变则证明已经计算完毕
         if (!change) {
             break;
         }
     }
-
+    //打印距离表
     for (int i = 0; i < 6; ++i) {
         for (int j = 0; j < 6; ++j) {
             PRINT("%d\t", distance[i][j]);
         }
         PRINT("\r\n");
     }
-
-    //打印结果
+    //打印路由表
     PRINT("\r\n");
     LOG_INFO("Result:");
     for (int m = 0; m < 6; ++m) {
