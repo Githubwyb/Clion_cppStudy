@@ -8,36 +8,31 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <algorithm>
 
 using namespace std;
 
 int main() {
     int n = 0;
     cin >> n;
-    vector<int> user;
+    map<int, vector<int>> likeMap;
     for (int i = 0; i < n; ++i) {
         int like = 0;
         cin >> like;
-        user.emplace_back(like);
+        likeMap[like].emplace_back(i + 1);
     }
 
     int q = 0;
     cin >> q;
     for (int j = 0; j < q; ++j) {
-        int l = 0;
-        cin >> l;
-        int r = 0;
-        cin >> r;
-        int k = 0;
-        cin >> k;
+        int l, r, k;
+        cin >> l >> r >> k;
 
-        int result = 0;
-        for (int i = l - 1; i < r; ++i) {
-            if (user[i] == k) {
-                result++;
-            }
-        }
-        cout << result << endl;
+        auto ln = lower_bound(likeMap[k].begin(), likeMap[k].end(), l);
+        auto rn = upper_bound(likeMap[k].begin(), likeMap[k].end(), r);
+        cout << rn - ln << endl;
     }
+
     return 0;
 }
