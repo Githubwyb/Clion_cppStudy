@@ -8,45 +8,38 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
 int main() {
-    int n, m, c;
-    cin >> n >> m >> c;
-
-    int last[51] = {0};     //上一次出现位置
-    int first[51] = {0};    //第一次出现位置
-    bool colorNo[51] = {false};
-
-    for (int i = 0; i < n; ++i) {
-        int colorN = 0;
-        cin >> colorN;
-        for (int j = 0; j < colorN; ++j) {
-            int color = 0;
-            cin >> color;
-            if (first[color] == 0) {
-                first[color] = i;
-            } else if (i - last[color] < m) {
-                colorNo[color] = true;
-            }
-            last[color] = i;
-        }
-    }
-
-    for (int k = 1; k < 51; ++k) {
-        if (first[k] != 0 && last[k] + m - 1 - n >= first[k]) {
-            colorNo[k] = true;
-        }
-    }
+    string originStr;
+    int m = 0;
+    cin >> originStr >> m;
 
     int result = 0;
-    for (int l = 0; l < 51; ++l) {
-        if (colorNo[l]) {
-            result++;
+    for (char item = 'a'; item <= 'z'; item++) {
+        vector<int> pos;
+        //提取位置
+        for (int i = 0; i < originStr.length(); ++i) {
+            if (originStr[i] == item) {
+                pos.emplace_back(i);
+            }
         }
+
+        vector<vector<int>> dp(pos.size(), vector<int>(pos.size(), 0));
+        int maxLen = 0;
+        for (int len = 2; len <= pos.size(); ++len) {
+            for (int i = 0; i + len - 1 < pos.size(); ++i) {
+                dp[i][i + len - 1] = dp[i + 1][i + len - 2] + pos[i + len - 1] - pos[i] - len + 1;
+                if (dp[i][i + len - 1] <= m) {
+                    maxLen = len;
+                }
+            }
+        }
+        result = max(result, maxLen);
     }
-    cout << result;
+    cout << result << endl;
 
     return 0;
 }
