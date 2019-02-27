@@ -22,20 +22,51 @@ shared_ptr<Node> pRoot = nullptr;
 
 void addNodes();
 
-void printNodes(const shared_ptr<Node> &node) {
-    LOG_DEBUG("Value %d", node->value);
-    for (auto &tmp : node->pChild) {
-        printNodes(tmp);
+#include <stack>
+
+//深度优先
+void printNodesDeepFirst(const shared_ptr<Node> &node) {
+    stack<shared_ptr<Node>> myStack;
+    myStack.push(node);
+    while (myStack.size() > 0) {
+        shared_ptr<Node> pTmp = myStack.top();
+        myStack.pop();
+        PRINT("%d ", pTmp->value);
+
+        //由于栈的后进先出特性，需要倒序使左节点先出
+        for (int i = pTmp->pChild.size(); i != 0; --i) {
+            myStack.push(pTmp->pChild[i - 1]);
+        }
     }
+    PRINT("\r\n");
+}
+
+#include <queue>
+
+//广度优先
+void printNodesWidthFirst(const shared_ptr<Node> &node) {
+    queue<shared_ptr<Node>> myQueue;
+    myQueue.push(node);
+    while (myQueue.size() > 0) {
+        shared_ptr<Node> pTmp = myQueue.front();
+        myQueue.pop();
+        PRINT("%d ", pTmp->value);
+
+        for (auto tmp : pTmp->pChild) {
+            myQueue.push(tmp);
+        }
+    }
+    PRINT("\r\n");
 }
 
 int main() {
     pRoot = make_shared<Node>();
-    pRoot->value = 50;
+    pRoot->value = 1;
 
     addNodes();
 
-    printNodes(pRoot);
+    printNodesDeepFirst(pRoot);
+    printNodesWidthFirst(pRoot);
 }
 
 void addNode(const shared_ptr<Node> &pParent, Node &pChild) {
@@ -52,54 +83,38 @@ void addNodes() {
     Node tmp1;
 
     clearNode(tmp1);
-    tmp1.value = 40;
+    tmp1.value = 2;
     addNode(pRoot, tmp1);
 
     clearNode(tmp1);
-    tmp1.value = 30;
+    tmp1.value = 3;
     addNode(pRoot, tmp1);
 
     clearNode(tmp1);
-    tmp1.value = 10;
-    addNode(pRoot, tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 20;
+    tmp1.value = 4;
     addNode(pRoot->pChild[0], tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 70;
-    addNode(pRoot->pChild[0], tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 15;
-    addNode(pRoot->pChild[0]->pChild[1], tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 25;
-    addNode(pRoot->pChild[0]->pChild[1]->pChild[0], tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 75;
-    addNode(pRoot->pChild[0]->pChild[1]->pChild[0], tmp1);
-
-    clearNode(tmp1);
-    tmp1.value = 65;
-    addNode(pRoot->pChild[1], tmp1);
 
     clearNode(tmp1);
     tmp1.value = 5;
-    addNode(pRoot->pChild[1]->pChild[0], tmp1);
+    addNode(pRoot->pChild[0], tmp1);
 
     clearNode(tmp1);
-    tmp1.value = 35;
-    addNode(pRoot->pChild[1]->pChild[0], tmp1);
+    tmp1.value = 6;
+    addNode(pRoot->pChild[1], tmp1);
 
     clearNode(tmp1);
-    tmp1.value = 45;
-    addNode(pRoot->pChild[2], tmp1);
+    tmp1.value = 7;
+    addNode(pRoot->pChild[1], tmp1);
 
     clearNode(tmp1);
-    tmp1.value = 80;
-    addNode(pRoot->pChild[2]->pChild[0], tmp1);
+    tmp1.value = 8;
+    addNode(pRoot->pChild[0]->pChild[0], tmp1);
+
+    clearNode(tmp1);
+    tmp1.value = 9;
+    addNode(pRoot->pChild[0]->pChild[0], tmp1);
+
+    clearNode(tmp1);
+    tmp1.value = 10;
+    addNode(pRoot->pChild[0]->pChild[1], tmp1);
 }
