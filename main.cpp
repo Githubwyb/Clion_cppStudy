@@ -6,60 +6,50 @@
 
 #include "log.hpp"
 
-#include <iostream>
-#include <vector>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-using namespace std;
+#define	UDP_TEST_PORT		80
 
-int main() {
-    int n, m, c;
-    cin >> n;
-    cin >> m;
-    cin >> c;
+int main(int argC, char* arg[])
+{
+    struct sockaddr_in addr;
+    int sockfd, len = 0;
+    socklen_t addr_len = sizeof(struct sockaddr_in);
+    char buffer[256];
 
-    int count[51] = {0};
-    bool colorNo[51] = {false};
-    vector<vector<int>> line;
-    for (int i = 0; i < n; ++i) {
-        int colorN = 0;
-        cin >> colorN;
-        vector<int> one;
-        if (i >= m) {
-            for (auto tmp : line[i - m]) {
-                count[tmp]--;
-            }
-        }
-        for (int j = 0; j < colorN; ++j) {
-            int color = 0;
-            cin >> color;
-            if (count[color] == 1) {
-                colorNo[color] = true;
-            }
-            count[color]++;
-            one.emplace_back(color);
-        }
-        line.emplace_back(one);
+    /* 建立socket，注意必须是SOCK_DGRAM */
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror ("socket");
+        exit(1);
     }
 
-    for (int k = 0; k < m; ++k) {
-        for (auto tmp : line[n + k - m]) {
-            count[tmp]--;
-        }
-        for (auto tmp : line[k]) {
-            if (count[tmp] == 1) {
-                colorNo[tmp] = true;
-            }
-            count[tmp]++;
-        }
+    /* 填写sockaddr_in 结构 */
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(UDP_TEST_PORT);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY) ;// 接收任意IP发来的数据
+
+    /* 绑定socket */
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr))<0) {
+        perror("connect");
+        exit(1);
     }
 
-    int result = 0;
-    for (int l = 0; l < 51; ++l) {
-        if (colorNo[l]) {
-            result++;
-        }
+    while(1) {
+        bzero(buffer, sizeof(buffer));
+        len = recvfrom(sockfd, buffer, sizeof(buffer), 0,
+                       (struct sockaddr *)&addr ,&addr_len);
+        /* 显示client端的网络地址和收到的字符串消息 */
+        printf("Received from client %s:%d  : %s\n",
+               inet_ntoa(addr.sin_addr), addr.sin_port, buffer);
     }
-    cout << result;
 
     return 0;
 }
