@@ -7,38 +7,61 @@
 #include "log.hpp"
 
 #include <iostream>
-#include <memory>
+#include <string>
 
 using namespace std;
 
-int *minNum;
-int coin[] = {1, 4, 16, 64};
+bool check(string &str) {
+    int state = 0;
+    char tmp = 0;
+    for (auto it = str.begin(); it != str.end(); it++) {
+        switch (state) {
+            case 0:
+                if (*it == tmp) {
+                    state = 1;
+                } else {
+                    tmp = *it;
+                }
+                break;
 
-int fun(int num) {
-    for (int j = 1; j <= num; ++j) {
-        int minValue = 99999;
-        for (int i = 0; i < 4; ++i) {
-            int tmp = 999999;
-            if (j >= coin[i]) {
-                tmp = minNum[j - coin[i]] + 1;
-            }
-            minValue = min(tmp, minValue);
+            case 1:
+                if (*it == tmp) {
+                    str.erase(it);
+                    LOG_DEBUG("%s", str.data());
+                    return true;
+                } else {
+                    tmp = *it;
+                    state = 2;
+                }
+                break;
+
+            case 2:
+                if (*it == tmp) {
+                    str.erase(it);
+                    return true;
+                } else {
+                    tmp = *it;
+                    state = 0;
+                }
+                break;
+
+            default:
+                break;
         }
-        minNum[j] = minValue;
     }
-    return minNum[num];
+    return false;
 }
 
 int main() {
     int N = 0;
     cin >> N;
 
-    minNum = new int[1025];
-    minNum[0] = 0;
-    fun(1024 - N);
-    for (int i = 0; i < 1025 - N; i++) {
-        LOG_DEBUG("%d: %d", i, minNum[i]);
+    for (int i = 0; i < N; ++i) {
+        string words;
+        cin >> words;
+        while (check(words)) {}
+        cout << words << endl;
     }
-    delete minNum;
+
     return 0;
 }
