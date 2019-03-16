@@ -7,61 +7,48 @@
 #include "log.hpp"
 
 #include <iostream>
-#include <string>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
-bool check(string &str) {
-    int state = 0;
-    char tmp = 0;
-    for (auto it = str.begin(); it != str.end(); it++) {
-        switch (state) {
-            case 0:
-                if (*it == tmp) {
-                    state = 1;
-                } else {
-                    tmp = *it;
-                }
-                break;
+int main() {
+    int N, M;
+    cin >> N >> M;
 
-            case 1:
-                if (*it == tmp) {
-                    str.erase(it);
-                    LOG_DEBUG("%s", str.data());
-                    return true;
-                } else {
-                    tmp = *it;
-                    state = 2;
-                }
-                break;
+    vector<unsigned long long> len;
+    unsigned long long maxLen = 0;
+    for (int i = 0; i < N; ++i) {
+        unsigned long long tmp;
+        cin >> tmp;
+        len.emplace_back(tmp * 100);
+        maxLen = max(maxLen, tmp * 100);
+    }
+    sort(len.begin(), len.end());
 
-            case 2:
-                if (*it == tmp) {
-                    str.erase(it);
-                    return true;
-                } else {
-                    tmp = *it;
-                    state = 0;
-                }
-                break;
+    if (M <= N) {
+        cout << len[N - M];
+        return 0;
+    }
 
-            default:
-                break;
+    unsigned long long left = 0;
+    unsigned long long right = maxLen;
+    while ((right - left) > 1) {
+        int count = 0;
+        unsigned long long medium = (left + right) / 2;
+        cout << left << medium << right << endl;
+        for (auto tmp : len) {
+            count += tmp / medium;
+        }
+
+        if (count >= M) {
+            left = medium;
+        } else {
+            right = medium;
         }
     }
-    return false;
-}
 
-int main() {
-    int N = 0;
-    cin >> N;
-
-    for (int i = 0; i < N; ++i) {
-        string words;
-        cin >> words;
-        while (check(words)) {}
-        cout << words << endl;
-    }
+    printf("%.2f", left / 100.0);
 
     return 0;
 }
