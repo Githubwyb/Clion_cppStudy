@@ -115,7 +115,7 @@ int main() {
             break;
         }
 
-        if (pData->fpgaFreChoose == 1) {
+        if (pData->fpgaFreChoose != 2) {
             error = FPGA_SYSTEM_TICK / 32 / pData->divFre / pData->curRealFre * 10 - 1;
         } else {
             error = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre / pData->curRealFre * 10 - 1;
@@ -136,7 +136,7 @@ int get_div(double fre)
         pData->curRealFre = fre * 10;
         pData->divFre = FPGA_SYSTEM_TICK / 32 / pData->curRealFre * 10;
     }
-    else if (fre < 1000000 * 1.06)
+    else if (fre < 1000000 * 1.05)
     {
         pData->divFre = FPGA_SYSTEM_TICK / 32 / fre;
         pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
@@ -193,7 +193,7 @@ int get_divLine(double fre)
     }
     else if (pData->curFre > 10000)
     {
-        if (pData->fpgaFreChoose == 1) {
+        if (pData->fpgaFreChoose != 2) {
             pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
         } else {
             pData->curRealFre = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre * 10;
@@ -215,11 +215,12 @@ int get_freLine(void)
     static int threshold2 = 0;
     static int n1 = 0;
     static int n2 = 0;
-    static DATA *pData = data_getData();
-    static SETTING *pSetting = data_getSetting();
+    static DATA *pData = NULL;
+    static SETTING *pSetting = NULL;
     int temp = 0;
     int temp1 = 0;
     int temp2 = 0;
+    pData = data_getData();
     if (L_TRUE == pData->isFirst)
     {
         pSetting = data_getSetting();
@@ -324,7 +325,7 @@ int get_freLine(void)
                 }
                 break;
 
-            case 501: {
+            case 501:
                 if (pData->fpgaFreChoose == 0) {
                     if (pData->divFre > 53) {
                         pData->divFre -= 2;
@@ -336,26 +337,33 @@ int get_freLine(void)
                         pData->divFre -= 1;
                         pData->curFre = FPGA_SYSTEM_TICK / 32 / pData->divFre;
                     }
-                } else {
-                    pData->fpgaFreChoose = 0;
+                } else if (pData->fpgaFreChoose == 1) {
+                    pData->fpgaFreChoose = 2;
                     pData->curFre = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre;
+                } else {
+                    pData->fpgaFreChoose = 1;
+                    pData->divFre -= 1;
+                    pData->curFre = FPGA_SYSTEM_TICK / 32 / pData->divFre;
                 }
-            }
                 break;
 
-            case 1001: {
+            case 1001:
                 if (pData->fpgaFreChoose == 0) {
                     pData->fpgaFreChoose = 1;
                     pData->divFre -= 1;
                     pData->curFre = FPGA_SYSTEM_TICK / 32 / pData->divFre;
-                } else {
-                    pData->fpgaFreChoose = 0;
+                } else if (pData->fpgaFreChoose == 1) {
+                    pData->fpgaFreChoose = 2;
                     pData->curFre = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre;
+                } else {
+                    pData->fpgaFreChoose = 1;
+                    pData->divFre -= 1;
+                    pData->curFre = FPGA_SYSTEM_TICK / 32 / pData->divFre;
                 }
-            }
                 break;
 
             default:
+            LOG_ERROR("Sum %d is error", pSetting->sum);
                 break;
         }
     }
@@ -396,37 +404,40 @@ int get_divLog(double fre)
             }
             break;
 
-        case 501: {
+        case 501:
             if (pData->fpgaFreChoose == 0 && pData->divFre >= pData->lastDiv) {
                 pData->fpgaFreChoose = 1;
-                //200
                 pData->divFre = pData->lastDiv - 1;
                 pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
             } else if (pData->fpgaFreChoose == 1) {
-                pData->fpgaFreChoose = 0;
+                pData->fpgaFreChoose = 2;
                 pData->divFre = pData->lastDiv;
-                //202
                 pData->curRealFre = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre * 10;
+            } else if (pData->fpgaFreChoose == 2) {
+                pData->fpgaFreChoose = 1;
+                pData->divFre = pData->lastDiv - 1;
+                pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
             }
-        }
             break;
 
-        case 1001: {
+        case 1001:
             if (pData->fpgaFreChoose == 0 && pData->divFre >= pData->lastDiv) {
                 pData->fpgaFreChoose = 1;
-                //200
                 pData->divFre = pData->lastDiv - 1;
                 pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
             } else if (pData->fpgaFreChoose == 1) {
-                pData->fpgaFreChoose = 0;
+                pData->fpgaFreChoose = 2;
                 pData->divFre = pData->lastDiv;
-                //202
                 pData->curRealFre = FPGA_SYSTEM_TICK_1 / 32 / pData->divFre * 10;
+            } else if (pData->fpgaFreChoose == 2) {
+                pData->fpgaFreChoose = 1;
+                pData->divFre = pData->lastDiv - 1;
+                pData->curRealFre = FPGA_SYSTEM_TICK / 32 / pData->divFre * 10;
             }
-        }
             break;
 
         default:
+        LOG_ERROR("Sum %d is error", pSetting->sum);
             break;
     }
 
@@ -437,8 +448,8 @@ int get_divLog(double fre)
 int get_freLog(void)
 {
     static double times = 0;
-    static DATA *pData = data_getData();
-    static SETTING *pSetting = data_getSetting();
+    DATA *pData = data_getData();
+    SETTING *pSetting = data_getSetting();
     double temp = 0;
 
     if (L_TRUE == pData->isFirst)
@@ -450,7 +461,6 @@ int get_freLog(void)
         times = pow(10, temp);
 
         LOG_DEBUG("times: %.4f", times);
-        // return F_FAILED;
     }
 
     if (pData->curFre < pSetting->startFre)
