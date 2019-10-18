@@ -5,98 +5,65 @@
  */
 
 #include <string>
+#include <vector>
+#include <iostream>
 #include <cstring>
 #include "log.hpp"
 
-#define PREVIEW_AWORK_SETTING "setting.json"
-#define PREVIEW_AWORKNAME_PREFIX "\"tmp_app_name\":\""
-#define PREVIEW_AWORKNAME_SUFIX "\""
-#define TWF_LOGE LOG_ERROR
-#define TWF_LOG(DebugLog, fmt, ...) LOG_DEBUG(fmt, ##__VA_ARGS__)
+using namespace std;
 
-//从json文件内获取awork试用版名字
-static int get_previewAworkName(char *const aworkName, int size)
-{
-    FILE *file = fopen(PREVIEW_AWORK_SETTING, "rt");
+class Solution {
+public:
+    bool Find(int target, vector<vector<int>> &array) {
+        int row = array.size();
+        int line = array[0].size();
 
-    if (nullptr == file)
-    {
-        TWF_LOG(DebugLog, "No file " PREVIEW_AWORK_SETTING ", maybe there is no previewAwork");
-        return -1;
-    }
+        int j = line - 1;
+        int i = 0;
+        int state = 0;
+        while (i < row && j >= 0) {
+            LOG_DEBUG("i %d j %d", i, j);
+            if (target == array[i][j])
+                return true;
 
-    char line[1024];
-    int state = 0;
-    char *previewAworkNameStart = nullptr;
-    char *previewAworkNameEnd = nullptr;
-    while (nullptr != fgets(line, sizeof(line), file))
-    {
-        //初始状态
-        if (state == 0)
-        {
-            //查找试用版awork起始位置
-            previewAworkNameStart = strstr(line, PREVIEW_AWORKNAME_PREFIX);
-            if (previewAworkNameStart != nullptr)
-            {
-                previewAworkNameStart += sizeof(PREVIEW_AWORKNAME_PREFIX);
-                state = 1;
-            }
-            else
-            {
-                continue;
-            }
-        }
+            switch (state) {
+                //横向排查
+                case 0:
+                    //从右向左找小于target的索引
+                    if (target >= array[i][j]) {
+                        state = 1;
+                        break;
+                    }
+                    --j;
+                    break;
 
-        //查找到起始位置
-        if (state == 1)
-        {
-            //查找试用版awork结束位置
-            previewAworkNameEnd = strstr(line, PREVIEW_AWORKNAME_SUFIX);
-            if (previewAworkNameEnd != nullptr)
-            {
-                int cpLen = (previewAworkNameEnd - previewAworkNameStart > size) ? size : previewAworkNameEnd - previewAworkNameStart;
-                memcpy(aworkName, previewAworkNameStart, cpLen);
-                state = 2; //成功
-            }
-            else
-            {
-                //没有读到结束符，报错
-                break;
+                //纵向排查
+                case 1:
+                    //从上向下找大于target的索引
+                    if (target <= array[i][j]) {
+                        state = 0;
+                        break;
+                    }
+                    ++i;
+                    break;
+
+                default:
+                    printf("End, unbelievable error");
+                    break;
             }
         }
-    }
 
-    //非读完状态的推出
-    if (ferror(file) != 0)
-    {
-        TWF_LOGE("WHAT(\"File read failed\"),    \
-                     REASON(\"fileName %s\", PREVIEW_AWORK_SETTING), \
-                     WILL(\"Can't get previewAworkName\"),          \
-                     NO_HOW_TO, NO_CAUSED_BY");
-        fclose(file);
-        return -1;
+        return false;
     }
-
-    //state不对，读有误
-    if (state != 2)
-    {
-        TWF_LOGE("WHAT(\"File read failed\"),    \
-                     REASON(\"Can't find " PREVIEW_AWORKNAME_PREFIX "in file\"), \
-                     WILL(\"Can't get previewAworkName\"),          \
-                     NO_HOW_TO, NO_CAUSED_BY");
-        fclose(file);
-        return -1;
-    }
-
-    fclose(file);
-    return 0;
-}
+};
 
 int main(int argC, char *arg[])
 {
-    char name[128] = {0};
-    int ret = get_previewAworkName(name, 127);
-    LOG_DEBUG("ret %d, name %s", ret, name);
-
+    vector<vector<int>> array = {{0, 3, 7, 9},
+                                 {1, 4, 8, 10},
+                                 {2, 5, 9, 11}};
+    Solution a;
+    bool b = a.Find(6, array);
+    LOG_DEBUG("%d", b);
     return 0;
 }
