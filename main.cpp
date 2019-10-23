@@ -14,56 +14,28 @@ using namespace std;
 
 class Solution {
 public:
-    bool Find(int target, vector<vector<int>> &array) {
-        int row = array.size();
-        int line = array[0].size();
-
-        int j = line - 1;
-        int i = 0;
-        int state = 0;
-        while (i < row && j >= 0) {
-            LOG_DEBUG("i %d j %d", i, j);
-            if (target == array[i][j])
-                return true;
-
-            switch (state) {
-                //横向排查
-                case 0:
-                    //从右向左找小于target的索引
-                    if (target >= array[i][j]) {
-                        state = 1;
-                        break;
-                    }
-                    --j;
-                    break;
-
-                //纵向排查
-                case 1:
-                    //从上向下找大于target的索引
-                    if (target <= array[i][j]) {
-                        state = 0;
-                        break;
-                    }
-                    ++i;
-                    break;
-
-                default:
-                    printf("End, unbelievable error");
-                    break;
-            }
+    void replaceSpace(char *str,int length) {
+        int srcI = 0;
+        int desI = 0;
+        string desStr;
+        while (str != nullptr) {
+            char *find = strstr(str + srcI, " ");
+            if (find == nullptr)
+                break;
+            desStr.append(str + srcI, find);
+            srcI = find - str + 1;
+            desStr.append("%20");
         }
-
-        return false;
+        desStr.append(str + srcI, length - srcI);
+        memcpy(str, desStr.c_str(), desStr.size());
     }
 };
 
 int main(int argC, char *arg[])
 {
-    vector<vector<int>> array = {{0, 3, 7, 9},
-                                 {1, 4, 8, 10},
-                                 {2, 5, 9, 11}};
+    char test[255] = " i  l k lkj kk  kjl";
     Solution a;
-    bool b = a.Find(6, array);
-    LOG_DEBUG("%d", b);
+    a.replaceSpace(test, strlen(test));
+    LOG_DEBUG("%s", test);
     return 0;
 }
