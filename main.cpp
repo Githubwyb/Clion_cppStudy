@@ -6,70 +6,57 @@
 
 #include <string>
 #include <vector>
+#include <stack>
+#include <memory>
 #include <iostream>
 #include <cstring>
 #include "log.hpp"
 
 using namespace std;
 
-class Solution {
+class Solution
+{
 public:
-    int jumpFloor(int n) {
-        if (n == 0) {
-            return 0;
+    void push(int node) {
+        stack1.push(node);
+    }
+
+    int pop() {
+        if (stack2.empty()) {
+            while (!stack1.empty()) {
+                stack2.push(stack1.top());
+                stack1.pop();
+            }
         }
 
-        int f = 1, g = 1;
-        while(n--) {
-            g += f;     //从前一次到当前
-            f = g - f;  //从前两次算到前一次
+        if (stack2.empty()) {
+            return -1;
         }
-        return f;
+
+        int result = stack2.top();
+        stack2.pop();
+        return result;
     }
+
+private:
+    stack<int> stack1;  //入队列
+    stack<int> stack2;  //出队列
 };
 
 int main(int argC, char *arg[]) {
-    Solution a;
-    int n = 0;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
-    n++;
+    Solution queue;
+
+    queue.push(1);
+    queue.push(2);
+    queue.push(3);
+    queue.push(4);
+    queue.push(5);
+
+    LOG_DEBUG("%d", queue.pop());
+    LOG_DEBUG("%d", queue.pop());
+    LOG_DEBUG("%d", queue.pop());
+    LOG_DEBUG("%d", queue.pop());
+    LOG_DEBUG("%d", queue.pop());
+    LOG_DEBUG("%d", queue.pop());
     return 0;
 }
