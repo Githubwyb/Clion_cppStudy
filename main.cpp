@@ -14,66 +14,62 @@ using namespace std;
 
 class Solution {
 public:
-    int Fibonacci(int n) {
-        if (n == 0 || m_result[n] != 0) {
-            return m_result[n];
+    int jumpFloor(int n) {
+        if (n == 0) {
+            return 0;
         }
 
-        if (n == 1) {
-            m_result[n] = 1;
-        } else {
-            m_result[n] = Fibonacci(n - 1) + Fibonacci(n - 2);
+        int f = 1, g = 1;
+        while(n--) {
+            g += f;     //从前一次到当前
+            f = g - f;  //从前两次算到前一次
         }
-
-        return m_result[n];
+        return f;
     }
-
-private:
-    int m_result[40] = {0};
 };
 
 int main(int argC, char *arg[]) {
     Solution a;
     int n = 0;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
-    LOG_DEBUG("n %d, result %d", n, a.Fibonacci(n));
+    LOG_DEBUG("n %d, result %d", n, a.jumpFloor(n));
     n++;
     return 0;
 }
