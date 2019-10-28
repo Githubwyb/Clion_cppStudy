@@ -14,49 +14,42 @@
 
 using namespace std;
 
-class Solution
-{
+class Solution {
 public:
-    void push(int node) {
-        stack1.push(node);
-    }
+    int minNumberInRotateArray(vector<int> rotateArray) {
+        if (rotateArray.empty()) {
+            return 0;
+        }
 
-    int pop() {
-        if (stack2.empty()) {
-            while (!stack1.empty()) {
-                stack2.push(stack1.top());
-                stack1.pop();
+        int left = 0;
+        int right = rotateArray.size() - 1;
+
+        //另类的二分查找，比左边的大，左边等，比右边的小，右边等
+        while (true) {
+            int tmp = (left + right) / 2;
+
+            if (tmp == left) {
+                break;
+            }
+
+            if (rotateArray[tmp] >= rotateArray[left]) {
+                left = tmp;
+            } else {
+                right = tmp;
             }
         }
 
-        if (stack2.empty()) {
-            return -1;
+        if (rotateArray[left] < rotateArray[right]) {
+            return rotateArray[left];
         }
 
-        int result = stack2.top();
-        stack2.pop();
-        return result;
+        return rotateArray[right];
     }
-
-private:
-    stack<int> stack1;  //入队列
-    stack<int> stack2;  //出队列
 };
 
 int main(int argC, char *arg[]) {
-    Solution queue;
-
-    queue.push(1);
-    queue.push(2);
-    queue.push(3);
-    queue.push(4);
-    queue.push(5);
-
-    LOG_DEBUG("%d", queue.pop());
-    LOG_DEBUG("%d", queue.pop());
-    LOG_DEBUG("%d", queue.pop());
-    LOG_DEBUG("%d", queue.pop());
-    LOG_DEBUG("%d", queue.pop());
-    LOG_DEBUG("%d", queue.pop());
+    Solution a;
+    vector<int> arr = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5};
+    LOG_DEBUG("%d", a.minNumberInRotateArray(arr));
     return 0;
 }
