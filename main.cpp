@@ -6,50 +6,26 @@
 
 #include <string>
 #include <vector>
-#include <stack>
-#include <memory>
-#include <iostream>
-#include <cstring>
+#include <cmath>
 #include "log.hpp"
 
 using namespace std;
 
 class Solution {
 public:
-    int minNumberInRotateArray(vector<int> rotateArray) {
-        if (rotateArray.empty()) {
+    int jumpFloorII(int number) {
+        if (number == 0) {
             return 0;
         }
 
-        int left = 0;
-        int right = rotateArray.size() - 1;
-
-        //另类的二分查找，比左边的大，左边等，比右边的小，右边等
-        while (true) {
-            int tmp = (left + right) / 2;
-
-            if (tmp == left) {
-                break;
-            }
-
-            if (rotateArray[tmp] >= rotateArray[left]) {
-                left = tmp;
-            } else {
-                right = tmp;
-            }
-        }
-
-        if (rotateArray[left] < rotateArray[right]) {
-            return rotateArray[left];
-        }
-
-        return rotateArray[right];
+        return 1 << (number - 1);
     }
 };
 
 int main(int argC, char *arg[]) {
     Solution a;
-    vector<int> arr = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5};
-    LOG_DEBUG("%d", a.minNumberInRotateArray(arr));
+    for (int i = 0; i < 10; ++i) {
+        LOG_DEBUG("i %d, num %d", i, a.jumpFloorII(i));
+    }
     return 0;
 }
