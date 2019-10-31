@@ -24,25 +24,18 @@ struct ListNode {
 };
 class Solution {
 public:
-    static ListNode* FindKthToTail(ListNode* pListHead, unsigned int k) {
-        if (k == 0) {
-            return nullptr;
+    static ListNode* ReverseList(ListNode* pHead) {
+        ListNode *p1 = nullptr;     //跟在后面翻转next的指针
+        ListNode *p2 = nullptr;     //保存前一次
+
+        while (pHead != nullptr) {
+            p2 = p1;
+            p1 = pHead;
+            pHead = pHead->next;
+            p1->next = p2;
         }
-
-        ListNode *p1 = pListHead;   //遍历指针
-        ListNode *p2 = pListHead;   //比p1提前k个节点的指针
-
-        int i = 0;
-        for (i = 1; p1 != nullptr; ++i) {
-            //走了k步后，p2移动跟上
-            if (i > k) {
-                p2 = p2->next;
-            }
-            p1 = p1->next;
-        }
-
-        //没走够k步返回空
-        return (i > k ? p2 : nullptr);
+        
+        return p1;
     }
 };
 
