@@ -14,31 +14,50 @@
 
 using namespace std;
 
-
-struct ListNode {
-	int val;
-	struct ListNode *next;
-	explicit ListNode(int x) :
-			val(x), next(nullptr) {
-	}
-};
 class Solution {
 public:
-    static ListNode* ReverseList(ListNode* pHead) {
-        ListNode *p1 = nullptr;     //跟在后面翻转next的指针
-        ListNode *p2 = nullptr;     //保存前一次
-
-        while (pHead != nullptr) {
-            p2 = p1;
-            p1 = pHead;
-            pHead = pHead->next;
-            p1->next = p2;
+    static int rectCover(int number) {
+        if (number == 0) {
+            return 0;
         }
-        
-        return p1;
+        int f = 1;
+        int g = 1;
+        for (int i = 0; i < number; ++i) {
+            g += f;
+            f = g - f;
+        }
+
+        return f;
     }
 };
 
 int main(int argC, char *arg[]) {
+    int n = 0;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
+    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
+    n++;
     return 0;
 }
