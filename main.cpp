@@ -9,6 +9,7 @@
 #include <stack>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 #include <cstring>
 #include "log.hpp"
 
@@ -16,48 +17,38 @@ using namespace std;
 
 class Solution {
 public:
-    static int rectCover(int number) {
-        if (number == 0) {
-            return 0;
-        }
-        int f = 1;
-        int g = 1;
-        for (int i = 0; i < number; ++i) {
-            g += f;
-            f = g - f;
+    static void reOrderArray(vector<int> &array) {
+        stable_partition(array.begin(), array.end(),
+                         [](const int &value) { return (value % 2 == 1); });
+        return;
+        vector<int> Odd;     //偶数队列
+        int size = array.size();
+        int j = 0;              //保存最后待放偶数的位置
+        for (int i = 0; i < size; ++i) {
+            if ((array[i] % 2) == 0) {
+                //LOG_DEBUG("push %d", array[i]);
+                Odd.emplace_back(array[i]);
+                continue;
+            }
+
+            if (i != j) {
+                //LOG_DEBUG("change %d to %d, value %d", j, i, array[i]);
+                array[j] = array[i];
+            }
+
+            ++j;
         }
 
-        return f;
+        memcpy(array.begin().base() + j, Odd.begin().base(), Odd.size() * sizeof(int));
     }
 };
 
 int main(int argC, char *arg[]) {
-    int n = 0;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
-    LOG_DEBUG("n %d, result %d", n, Solution::rectCover(n));
-    n++;
+    vector<int> arr = {1, 2, 3, 3, 5, 6, 5, 4, 45, 54, 64};
+    Solution::reOrderArray(arr);
+
+    for (auto tmp : arr) {
+        PRINT("%d,  ", tmp);
+    }
     return 0;
 }
