@@ -24,6 +24,7 @@ using namespace std;
 #include <string>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <memory>
 #include <iostream>
 #include <algorithm>
@@ -33,65 +34,54 @@ using namespace std;
 using namespace std;
 
 
-struct ListNode {
-    int val;
-    struct ListNode *next;
-
-    explicit ListNode(int x) :
-            val(x), next(nullptr) {
-    }
+struct TreeNode {
+	int val;
+	struct TreeNode *left;
+	struct TreeNode *right;
+	explicit TreeNode(int x) :
+			val(x), left(nullptr), right(nullptr) {
+	}
 };
-
 class Solution {
 public:
-    static ListNode *Merge(ListNode *pHead1, ListNode *pHead2) {
-        if (pHead1 == nullptr) {
-            return pHead2;
+    //递归
+    static void Mirror1(TreeNode *pRoot) {
+        if (pRoot == nullptr) {
+            return;
         }
 
-        if (pHead2 == nullptr) {
-            return pHead1;
+        TreeNode *pTmp = pRoot->right;
+        pRoot->right = pRoot->left;
+        pRoot->left = pTmp;
+
+        Mirror1(pRoot->right);
+        Mirror1(pRoot->left);
+    }
+
+    //非递归
+    static void Mirror(TreeNode *pRoot) {
+        if (pRoot == nullptr) {
+            return;
         }
 
-        ListNode* result = nullptr;
-        if (pHead1->val < pHead2->val) {
-            result = pHead1;
-            pHead1 = pHead1->next;
-        } else {
-            result = pHead2;
-            pHead2 = pHead2->next;
-        }
-
-        ListNode* pTmp = result;
-        while (true) {
-            if (pHead1 == nullptr) {
-                pTmp->next = pHead2;
-                break;
+        queue<TreeNode *> myQueue;
+        myQueue.push(pRoot);
+        while (myQueue.empty()) {
+            TreeNode *pTmp = myQueue.front();
+            myQueue.pop();
+            if (pTmp == nullptr) {
+                continue;
             }
 
-            if (pHead2 == nullptr) {
-                pTmp->next = pHead1;
-                break;
-            }
+            TreeNode *pTmp1 = pTmp->right;
+            pTmp->right = pTmp->left;
+            pTmp->left = pTmp1;
 
-            if (pHead1->val < pHead2->val) {
-                pTmp->next = pHead1;
-                pHead1 = pHead1->next;
-            } else {
-                pTmp->next = pHead2;
-                pHead2 = pHead2->next;
-            }
-            pTmp = pTmp->next;
+            myQueue.push(pTmp->right);
+            myQueue.push(pTmp->left);
         }
-
-        return result;
     }
 };
-
-int main(int argC, char *arg[]) {
-    return 0;
-}
-
 
 int main(int argC, char *arg[]) {
     return 0;
