@@ -4,84 +4,116 @@
  * @Description
  */
 
-#include <string>
-#include <vector>
-#include <stack>
-#include <memory>
-#include <iostream>
-#include <algorithm>
-#include <cstring>
+#include <atomic>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 #include <queue>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include "baseInstance.hpp"
 #include "log.hpp"
 
 using namespace std;
+using Task = function<void(void)>;
+static const int s_threadNum = 4;  //线程数量
 
-struct TreeNode {
-	int val;
-	struct TreeNode *left;
-	struct TreeNode *right;
-	explicit TreeNode(int x) :
-			val(x), left(nullptr), right(nullptr) {
-	}
+atomic<int> addNum;
+atomic<int> result;
 
-    explicit TreeNode(int x, TreeNode *pLeft, TreeNode *pRight) :
-    val(x), left(pLeft), right(pRight) {}
+class threadPool : public BaseInstance<threadPool> {
+   private:
+    vector<thread> m_pool;        //线程池
+    atomic<int> m_idleThreadNum;  //空闲线程数量
+    atomic<bool> m_stoped;        //是否停止线程
+    mutex m_lock;                 //线程池锁
+    queue<Task> m_tasks;          //待执行任务
+    condition_variable m_cv;      //线程控制
+    //线程执行函数
+    void run();
+
+   public:
+    //构造函数
+    threadPool();
+
+    ~threadPool();
+
+    //添加线程函数
+    void commit(function<void(string)>, const string &param);
 };
 
-class Solution {
-public:
-    static bool HasSubtree(TreeNode* pRoot1, TreeNode* pRoot2)
+threadPool::threadPool() {
+    m_stoped = false;
+    for (size_t i = 0; i < s_threadNum; i++) {
+        m_pool.emplace_back(thread(&threadPool::run, this));
+    }
+}
+
+threadPool::~threadPool() {
+    m_stoped = true;
+    m_cv.notify_all();
+    for (auto &tmp : m_pool) {
+        if (tmp.joinable()) tmp.join();
+    }
+    LOG_DEBUG("result %d, addNum %d", result.load(), addNum.load());
+}
+
+void threadPool::commit(function<void(string)> task, const string &param) {
+    if (m_stoped) {
+        LOG_INFO("ThreadPool has been stoped");
+        return;
+    }
+
     {
-        //排除有一个为空的情况
-        if (pRoot1 == nullptr || pRoot2 == nullptr) {
-            return false;
-        }
-
-        return HasSubtree1(pRoot1, pRoot2);
+        lock_guard<mutex> lock(m_lock);
+        m_tasks.emplace([task, param] { task(param); });
     }
+    m_cv.notify_one();
+}
 
-private:
-    static bool HasSubtree1(TreeNode* pRoot1, TreeNode* pRoot2)
-    {
-        //有一个为空时
-        if (pRoot1 == nullptr || pRoot2 == nullptr) {
-            //子结构为空证明遍历完了，否则不匹配
-            return pRoot2 == nullptr;
+void threadPool::run() {
+    while (true) {
+        m_idleThreadNum--;
+        Task task;
+        {
+            unique_lock<mutex> lock(m_lock);
+            m_cv.wait(lock,
+                      [this] { return this->m_stoped || !(m_tasks.empty()); });
+            if (m_tasks.empty()) {
+                return;
+            }
+            task = move(m_tasks.front());
+            m_tasks.pop();
         }
+        task();
+        m_idleThreadNum++;
+    }
+}
 
-        //当有值匹配，判断左右是否也匹配
-        if (pRoot1->val == pRoot2->val &&
-            HasSubtree1(pRoot1->right, pRoot2->right) &&
-            HasSubtree1(pRoot1->left, pRoot2->left)) {
-            return true;
+void test(string str) {
+    int add = 0;
+    while (true) {
+        add = addNum++;
+        if (add > 10000) {
+            return;
         }
-
-        //当上述不匹配，判断左右子树是否和子结构匹配
-        return HasSubtree1(pRoot1->right, pRoot2) || HasSubtree1(pRoot1->left, pRoot2);
+        result += add;
     }
-};
-
-//广度优先打印节点
-void printNodesWidthFirst(TreeNode *node) {
-    queue<TreeNode *> myQueue;
-    myQueue.push(node);
-    while (myQueue.size() > 0) {
-        TreeNode *pTmp = myQueue.front();
-        myQueue.pop();
-        PRINT("%d ", pTmp->val);
-
-        myQueue.push(pTmp->left);
-        myQueue.push(pTmp->right);
-    }
-    PRINT("\r\n");
 }
 
 int main(int argC, char *arg[]) {
-    LOG_DEBUG("Start");
-    TreeNode a(8, new TreeNode(8, new TreeNode(9, nullptr, nullptr), new TreeNode(2, nullptr, nullptr)),
-                    new TreeNode(7, new TreeNode(4, nullptr, nullptr), new TreeNode(7, nullptr, nullptr)));
-    TreeNode b(8, new TreeNode(9, nullptr, nullptr), new TreeNode(2, nullptr, nullptr));
-    auto result = Solution::HasSubtree(&a, &b);
-    LOG_DEBUG("%d", result);
+    LOG_DEBUG("Hello");
+    addNum = 0;
+    result = 0;
+    threadPool &pool = threadPool::getInstance();
+    for (int i = 0; i < 20; i++) {
+        char str[50] = {0};
+        sprintf(str, "task id %d", i);
+        string a = str;
+        pool.commit(test, a);
+    }
+    LOG_DEBUG("End");
     return 0;
 }
