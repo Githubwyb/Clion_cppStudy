@@ -4,9 +4,13 @@
  * @Description
  */
 
+#include <sys/time.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <future>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -41,7 +45,8 @@ class threadPool : public BaseInstance<threadPool> {
     ~threadPool();
 
     //添加线程函数
-    void commit(function<void(string)>, const string &param);
+    template <class F, class... Args>
+    auto commit(F &&f, Args &&... args) -> future<decltype(f(args...))>;
 };
 
 threadPool::threadPool() {
@@ -57,20 +62,27 @@ threadPool::~threadPool() {
     for (auto &tmp : m_pool) {
         if (tmp.joinable()) tmp.join();
     }
-    LOG_DEBUG("result %d, addNum %d", result.load(), addNum.load());
 }
 
-void threadPool::commit(function<void(string)> task, const string &param) {
+template <class F, class... Args>
+auto threadPool::commit(F &&f, Args &&... args)
+    -> future<decltype(f(args...))> {
+    using RetType = decltype(f(args...));
+
     if (m_stoped) {
         LOG_INFO("ThreadPool has been stoped");
-        return;
+        return future<RetType>();
     }
 
+    auto task = make_shared<packaged_task<RetType()>>(
+        bind(forward<F>(f), forward<Args>(args)...));
+    auto ret = task->get_future();
     {
         lock_guard<mutex> lock(m_lock);
-        m_tasks.emplace([task, param] { task(param); });
+        m_tasks.emplace([task] { (*task)(); });
     }
     m_cv.notify_one();
+    return ret;
 }
 
 void threadPool::run() {
@@ -87,17 +99,18 @@ void threadPool::run() {
             task = move(m_tasks.front());
             m_tasks.pop();
         }
+        LOG_DEBUG("Handle one task");
         task();
         m_idleThreadNum++;
     }
 }
 
-void test(string str) {
+int test() {
     int add = 0;
     while (true) {
         add = addNum++;
         if (add > 10000) {
-            return;
+            return add;
         }
         result += add;
     }
@@ -105,15 +118,16 @@ void test(string str) {
 
 int main(int argC, char *arg[]) {
     LOG_DEBUG("Hello");
-    addNum = 0;
-    result = 0;
     threadPool &pool = threadPool::getInstance();
+    vector<future<int>> ret;
+
     for (int i = 0; i < 20; i++) {
-        char str[50] = {0};
-        sprintf(str, "task id %d", i);
-        string a = str;
-        pool.commit(test, a);
+        ret.emplace_back(pool.commit(test));
     }
-    LOG_DEBUG("End");
+    for (auto &tmp : ret) {
+        tmp.wait();
+    }
+
+    LOG_DEBUG("End, result %d", result.load());
     return 0;
 }
