@@ -14,51 +14,68 @@ using namespace std;
 
 class Solution {
    public:
-    void push(int value) {
-        if (m_minData.empty() || value <= m_minData.top()) {
-            m_minData.push(value);
+    static vector<int> printMatrix(vector<vector<int> > matrix) {
+        if (matrix.empty()) {
+            return {};
         }
+        int index[4] = {0};
+        index[2] = matrix[0].size() - 1;
+        index[3] = matrix.size() - 1;
+        char state = 0;
+        vector<int> result;
+        while (index[0] <= index[2] && index[1] <= index[3]) {
+            switch (state) {
+                //第一行
+                case 0:
+                    for (int i = index[0]; i <= index[2]; i++) {
+                        result.push_back(matrix[index[1]][i]);
+                    }
+                    index[1]++;
+                    state++;
+                    break;
 
-        m_data.push(value);
-    }
+                //最后一列
+                case 1:
+                    for (int i = index[1]; i <= index[3]; i++) {
+                        result.push_back(matrix[i][index[2]]);
+                    }
+                    index[2]--;
+                    state++;
+                    break;
 
-    void pop() {
-        if (m_minData.top() == m_data.top()) {
-            m_minData.pop();
+                //最后一行
+                case 2:
+                    for (int i = index[2]; i >= index[0]; i--) {
+                        result.push_back(matrix[index[3]][i]);
+                    }
+                    index[3]--;
+                    state++;
+                    break;
+
+                //第一列
+                default:
+                    for (int i = index[3]; i >= index[1]; i--) {
+                        result.push_back(matrix[i][index[0]]);
+                    }
+                    index[0]++;
+                    state = 0;
+                    break;
+            }
         }
-        m_data.pop();
+        return result;
     }
-
-    int top() { return m_data.top(); }
-    int min() {
-        if (m_minData.empty()) {
-            return -1;
-        }
-        return m_minData.top();
-    }
-
-   private:
-    stack<int> m_data;
-    stack<int> m_minData;
 };
 
+void printVector(const vector<int> &data) {
+    LOG_DEBUG("result:");
+    for (auto tmp : data) {
+        PRINT("%d ", tmp);
+    }
+    PRINT("\r\n");
+}
+
 int main(int argC, char *arg[]) {
-    Solution a;
-    a.push(3);
-    LOG_DEBUG("%d", a.min());
-    a.push(4);
-    LOG_DEBUG("%d", a.min());
-    a.push(2);
-    LOG_DEBUG("%d", a.min());
-    a.push(3);
-    LOG_DEBUG("%d", a.min());
-    a.pop();
-    LOG_DEBUG("%d", a.min());
-    a.pop();
-    LOG_DEBUG("%d", a.min());
-    a.pop();
-    LOG_DEBUG("%d", a.min());
-    a.push(0);
-    LOG_DEBUG("%d", a.min());
+    printVector(Solution::printMatrix(
+        {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}}));
     return 0;
 }
