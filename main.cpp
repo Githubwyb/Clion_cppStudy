@@ -14,28 +14,51 @@ using namespace std;
 
 class Solution {
    public:
-    static bool IsPopOrder(vector<int> pushV, vector<int> popV) {
-        auto size = pushV.size();
-        if (size == 0 || size != popV.size()) {
-            return false;
+    void push(int value) {
+        if (m_minData.empty() || value <= m_minData.top()) {
+            m_minData.push(value);
         }
 
-        stack<int> test;
-        unsigned int j = 0;
-        unsigned int i = 0;
-        while (i < size) {
-            test.push(pushV[i++]);
-            while (!test.empty() && test.top() == popV[j]) {
-                test.pop();
-                j++;
-            }
-        }
-
-        return test.empty();
+        m_data.push(value);
     }
+
+    void pop() {
+        if (m_minData.top() == m_data.top()) {
+            m_minData.pop();
+        }
+        m_data.pop();
+    }
+
+    int top() { return m_data.top(); }
+    int min() {
+        if (m_minData.empty()) {
+            return -1;
+        }
+        return m_minData.top();
+    }
+
+   private:
+    stack<int> m_data;
+    stack<int> m_minData;
 };
 
 int main(int argC, char *arg[]) {
-    LOG_DEBUG("%d", Solution::IsPopOrder({1, 2, 3, 4, 5}, {4, 5, 3, 2, 1}));
+    Solution a;
+    a.push(3);
+    LOG_DEBUG("%d", a.min());
+    a.push(4);
+    LOG_DEBUG("%d", a.min());
+    a.push(2);
+    LOG_DEBUG("%d", a.min());
+    a.push(3);
+    LOG_DEBUG("%d", a.min());
+    a.pop();
+    LOG_DEBUG("%d", a.min());
+    a.pop();
+    LOG_DEBUG("%d", a.min());
+    a.pop();
+    LOG_DEBUG("%d", a.min());
+    a.push(0);
+    LOG_DEBUG("%d", a.min());
     return 0;
 }
