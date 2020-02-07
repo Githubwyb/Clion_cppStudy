@@ -4,65 +4,38 @@
  * @Description
  */
 
-#include <vector>
 #include <queue>
+#include <stack>
+#include <vector>
 
 #include "log.hpp"
 
 using namespace std;
 
-typedef struct TreeNode {
-    int val;
-    struct TreeNode *left;
-    struct TreeNode *right;
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *leftNode, TreeNode *rightNode)
-        : val(x), left(leftNode), right(rightNode) {}
-} TreeNode;
-
 class Solution {
    public:
-    static vector<int> PrintFromTopToBottom(TreeNode *root) {
-        if (root == nullptr) {
-            return {};
+    static bool IsPopOrder(vector<int> pushV, vector<int> popV) {
+        auto size = pushV.size();
+        if (size == 0 || size != popV.size()) {
+            return false;
         }
 
-        queue<TreeNode *> qTmp;
-        qTmp.push(root);
-        vector<int> result;
-        while (!qTmp.empty())
-        {
-            auto tmp = qTmp.front();
-            qTmp.pop();
-            result.push_back(tmp->val);
-
-            if (tmp->left != nullptr) {
-                qTmp.push(tmp->left);
-            }
-
-            if (tmp->right != nullptr) {
-                qTmp.push(tmp->right);
+        stack<int> test;
+        unsigned int j = 0;
+        unsigned int i = 0;
+        while (i < size) {
+            test.push(pushV[i++]);
+            while (!test.empty() && test.top() == popV[j]) {
+                test.pop();
+                j++;
             }
         }
-        return result;
+
+        return test.empty();
     }
 };
 
-void print_vector(const vector<int> &result) {
-    LOG_DEBUG("vector is");
-    for (auto &tmp : result) {
-        PRINT("%d ", tmp);
-    }
-    PRINT("\r\n");
-}
-
 int main(int argC, char *arg[]) {
-    TreeNode testTree(
-        1,
-        new TreeNode(2, new TreeNode(4, new TreeNode(8), new TreeNode(9)),
-                     new TreeNode(5, new TreeNode(10), nullptr)),
-        new TreeNode(3, new TreeNode(6), new TreeNode(7)));
-    vector<int> result = Solution::PrintFromTopToBottom(&testTree);
-    print_vector(result);
+    LOG_DEBUG("%d", Solution::IsPopOrder({1, 2, 3, 4, 5}, {4, 5, 3, 2, 1}));
     return 0;
 }
