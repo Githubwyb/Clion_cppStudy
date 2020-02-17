@@ -4,6 +4,8 @@
  * @Description
  */
 
+#include <algorithm>
+#include <map>
 #include <queue>
 #include <stack>
 #include <vector>
@@ -14,68 +16,70 @@ using namespace std;
 
 class Solution {
    public:
-    static vector<int> printMatrix(vector<vector<int> > matrix) {
-        if (matrix.empty()) {
-            return {};
+    // map统计
+    static int MoreThanHalfNum_Solution1(vector<int> numbers) {
+        int size = numbers.size();
+        map<int, int> count;
+        for (auto &tmp : numbers) {
+            if (count.count(tmp) == 0) {
+                count[tmp] = 1;
+                continue;
+            }
+            count[tmp]++;
         }
-        int index[4] = {0};
-        index[2] = matrix[0].size() - 1;
-        index[3] = matrix.size() - 1;
-        char state = 0;
-        vector<int> result;
-        while (index[0] <= index[2] && index[1] <= index[3]) {
-            switch (state) {
-                //第一行
-                case 0:
-                    for (int i = index[0]; i <= index[2]; i++) {
-                        result.push_back(matrix[index[1]][i]);
-                    }
-                    index[1]++;
-                    state++;
-                    break;
 
-                //最后一列
-                case 1:
-                    for (int i = index[1]; i <= index[3]; i++) {
-                        result.push_back(matrix[i][index[2]]);
-                    }
-                    index[2]--;
-                    state++;
-                    break;
-
-                //最后一行
-                case 2:
-                    for (int i = index[2]; i >= index[0]; i--) {
-                        result.push_back(matrix[index[3]][i]);
-                    }
-                    index[3]--;
-                    state++;
-                    break;
-
-                //第一列
-                default:
-                    for (int i = index[3]; i >= index[1]; i--) {
-                        result.push_back(matrix[i][index[0]]);
-                    }
-                    index[0]++;
-                    state = 0;
-                    break;
+        for (auto it = count.begin(); it != count.end(); it++) {
+            if (it->second > size / 2) {
+                return it->first;
             }
         }
-        return result;
+        return 0;
+    }
+
+    //巧解，排除相同的数，留下的即为所求
+    static int MoreThanHalfNum_Solution2(vector<int> numbers) {
+        int size = numbers.size();
+
+        int times = 0;
+        int result = 0;
+        for (auto &tmp : numbers) {
+            if (times == 0) {
+                result = tmp;
+            }
+
+            if (result == tmp) {
+                times++;
+                continue;
+            }
+
+            times--;
+        }
+
+        if (count(numbers.begin(), numbers.end(), result) > size / 2) {
+            return result;
+        }
+
+        return 0;
+    }
+
+    //排序，查中间
+    static int MoreThanHalfNum_Solution3(vector<int> numbers) {
+        sort(numbers.begin(), numbers.end());
+        int size = numbers.size();
+        if (count(numbers.begin(), numbers.end(), numbers[size / 2]) >
+            size / 2) {
+            return numbers[size / 2];
+        }
+        return 0;
     }
 };
 
-void printVector(const vector<int> &data) {
-    LOG_DEBUG("result:");
-    for (auto tmp : data) {
-        PRINT("%d ", tmp);
-    }
-    PRINT("\r\n");
-}
-
 int main(int argC, char *arg[]) {
-    printVector(Solution::printMatrix(
-        {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16}}));
+    LOG_DEBUG("%d",
+              Solution::MoreThanHalfNum_Solution1({1, 2, 3, 2, 2, 2, 5, 4, 2}));
+    LOG_DEBUG("%d",
+              Solution::MoreThanHalfNum_Solution2({1, 2, 3, 2, 2, 2, 5, 4, 2}));
+    LOG_DEBUG("%d",
+              Solution::MoreThanHalfNum_Solution3({1, 2, 3, 2, 2, 2, 5, 4, 2}));
     return 0;
 }
