@@ -16,70 +16,39 @@ using namespace std;
 
 class Solution {
    public:
-    // map统计
-    static int MoreThanHalfNum_Solution1(vector<int> numbers) {
-        int size = numbers.size();
-        map<int, int> count;
-        for (auto &tmp : numbers) {
-            if (count.count(tmp) == 0) {
-                count[tmp] = 1;
-                continue;
-            }
-            count[tmp]++;
-        }
-
-        for (auto it = count.begin(); it != count.end(); it++) {
-            if (it->second > size / 2) {
-                return it->first;
-            }
-        }
-        return 0;
+    static bool VerifySquenceOfBST(vector<int> sequence) {
+        return !sequence.empty() &&
+               VerifySquenceOfBST(sequence.begin().base(), sequence.size());
     }
 
-    //巧解，排除相同的数，留下的即为所求
-    static int MoreThanHalfNum_Solution2(vector<int> numbers) {
-        int size = numbers.size();
+   private:
+    static bool VerifySquenceOfBST(const int arr[], int length) {
+        if (length <= 0) {
+            return true;
+        }
 
-        int times = 0;
-        int result = 0;
-        for (auto &tmp : numbers) {
-            if (times == 0) {
-                result = tmp;
+        bool flag = false;
+        int result = length;
+        int i = 0;
+        for (i = 0; i < length - 1; i++) {
+            //异或，当false时，最后一位要比前面大，否则进判断；true时最后一位要比前面小，否则进逻辑
+            if (flag ^ (arr[i] > arr[length - 1])) {
+                if (flag) {
+                    //找到中间点后，出现小的，返回false
+                    return false;
+                }
+                //中间点转判断
+                flag = true;
+                result = i;
             }
-
-            if (result == tmp) {
-                times++;
-                continue;
-            }
-
-            times--;
         }
-
-        if (count(numbers.begin(), numbers.end(), result) > size / 2) {
-            return result;
-        }
-
-        return 0;
-    }
-
-    //排序，查中间
-    static int MoreThanHalfNum_Solution3(vector<int> numbers) {
-        sort(numbers.begin(), numbers.end());
-        int size = numbers.size();
-        if (count(numbers.begin(), numbers.end(), numbers[size / 2]) >
-            size / 2) {
-            return numbers[size / 2];
-        }
-        return 0;
+        return (i == length - 1) ||
+               (VerifySquenceOfBST(arr, result) &&
+                VerifySquenceOfBST(arr + result, length - result - 1));
     }
 };
 
 int main(int argC, char *arg[]) {
-    LOG_DEBUG("%d",
-              Solution::MoreThanHalfNum_Solution1({1, 2, 3, 2, 2, 2, 5, 4, 2}));
-    LOG_DEBUG("%d",
-              Solution::MoreThanHalfNum_Solution2({1, 2, 3, 2, 2, 2, 5, 4, 2}));
-    LOG_DEBUG("%d",
-              Solution::MoreThanHalfNum_Solution3({1, 2, 3, 2, 2, 2, 5, 4, 2}));
+    LOG_DEBUG("%d", Solution::VerifySquenceOfBST({1, 2, 3, 5, 6, 4}));
     return 0;
 }
