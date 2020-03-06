@@ -8,21 +8,24 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
-int main() {
-    int num;
-    while (cin >> num) {
-        vector<int> input;
-        for (int i = 0; i < num; i++) {
-            int tmp = 0;
-            cin >> tmp;
-            input.push_back(tmp);
-        }
+#include "log.hpp"
 
-        sort(input.begin(), input.end());
-        input.erase(unique(input.begin(), input.end()), input.end());
-        for (auto &tmp : input) {
-            cout << tmp << endl;
+using namespace std;
+
+class Solution {
+   public:
+    static int FindGreatestSumOfSubArray(vector<int> array) {
+        int maxTail = -1;
+        int max = 0x80000000;
+        for (auto &tmp : array) {
+            maxTail = (maxTail + tmp) > tmp ? (maxTail + tmp) : tmp;
+            max = max < maxTail ? maxTail : max;
         }
+        return max;
     }
+};
+
+int main() {
+    LOG_DEBUG("%d", Solution::FindGreatestSumOfSubArray(
+                        {1, -2, 3, 10, -4, 7, 2, -5}));
 }
