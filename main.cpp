@@ -14,6 +14,23 @@
 
 using namespace std;
 
+class Solution {
+   public:
+    int FirstNotRepeatingChar(string str) {
+        vector<int> count(128, 0);
+        for (auto &tmp : str) {
+            count[tmp]++;
+        }
+
+        int i = 0;
+        for (auto &tmp : str) {
+            if (count[tmp] == 1) return i;
+            i++;
+        }
+        return -1;
+    }
+};
+
 int main() {
     std::string input;
     getline(cin, input);
