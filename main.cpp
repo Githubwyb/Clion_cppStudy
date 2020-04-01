@@ -9,8 +9,10 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <assert.h>
 
 #include "log.hpp"
+#include "bugReport.hpp"
 
 using namespace std;
 
@@ -31,7 +33,8 @@ class Solution {
     }
 };
 
-int main() {
+int main(int argC, char* arg[]) {
+    (void)BugReportRegister("run", ".", nullptr, nullptr);
     std::string input;
     getline(cin, input);
     char findChr;
