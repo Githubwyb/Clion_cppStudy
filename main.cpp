@@ -9,49 +9,56 @@
 #include <vector>
 
 #include "log.hpp"
-#include "bugReport.hpp"
+//#include "bugReport.hpp"
 
 using namespace std;
 
 class Solution {
    public:
-    vector<string> Permutation(string str) {
-        int len = str.length();
-        if (len == 0) {
-            return {};
-        }
-        m_result.clear();
-        Permutation(str, 0, len);
-        sort(m_result.begin(), m_result.end());
-        m_result.erase(unique(m_result.begin(), m_result.end()),
-                       m_result.end());
-        return m_result;
+    static int Sum_Solution(int n) {
+        int sum = 0;
+        int num = 1 + n;
+        unsigned int bitNum = 0x01;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        (n & bitNum) && (sum += num); bitNum <<= 1; num <<= 1;
+        return sum >> 1;
     }
-
-   private:
-    void Permutation(string str, int index, int len) {
-        if (len == index) {
-            m_result.emplace_back(str);
-            return;
-        }
-
-        Permutation(str, index + 1, len);
-        for (int i = index + 1; i < len; i++) {
-            swap(str[index], str[i]);
-            Permutation(str, index + 1, len);
-            swap(str[index], str[i]);
-        }
-    }
-
-    vector<string> m_result;
 };
 
 int main() {
-    (void)BugReportRegister("run", ".", nullptr, nullptr);
-    Solution so;
-    auto tmpV = so.Permutation("abbsd");
-    for (auto &tmp : tmpV) {
-        LOG_DEBUG("%s", tmp.c_str());
-    }
+    //(void)BugReportRegister("run", ".", nullptr, nullptr);
+    int num = 10;
+    LOG_DEBUG("%d %d", num , Solution::Sum_Solution(num));
+    num = 100;
+    LOG_DEBUG("%d %d", num, Solution::Sum_Solution(num));
     return 0;
 }
