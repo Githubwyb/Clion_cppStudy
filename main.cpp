@@ -4,6 +4,7 @@
  * @Description
  */
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -12,31 +13,45 @@
 
 using namespace std;
 
-class Coins {
+class Solution {
    public:
-    static int countWays(int n) {
-        int coins[] = {1, 5, 10, 25};
-        // 初始化为1，只有1种硬币时，所有都只有一种方案
-        vector<int> dp(n + 1, 1);
-        // 从2种硬币开始
-        for (unsigned int i = 1; i < sizeof(coins) / sizeof(coins[0]); i++) {
-            // dp[i][j] = dp[i - 1][j];
-            for (int j = coins[i]; j <= n; j++) {
-                dp[j] += dp[j - coins[i]];
-                dp[j] %= 1000000007;
-            }
+    vector<string> Permutation(string str) {
+        int len = str.length();
+        if (len == 0) {
+            return {};
         }
-        return dp[n];
+        m_result.clear();
+        Permutation(str, 0, len);
+        sort(m_result.begin(), m_result.end());
+        m_result.erase(unique(m_result.begin(), m_result.end()),
+                       m_result.end());
+        return m_result;
     }
+
+   private:
+    void Permutation(string str, int index, int len) {
+        if (len == index) {
+            m_result.emplace_back(str);
+            return;
+        }
+
+        Permutation(str, index + 1, len);
+        for (int i = index + 1; i < len; i++) {
+            swap(str[index], str[i]);
+            Permutation(str, index + 1, len);
+            swap(str[index], str[i]);
+        }
+    }
+
+    vector<string> m_result;
 };
 
 int main() {
     (void)BugReportRegister("run", ".", nullptr, nullptr);
-    for (int i = 0; i < 15; i++) {
-        LOG_DEBUG("%d %d", i, Coins::countWays(i));
+    Solution so;
+    auto tmpV = so.Permutation("abbsd");
+    for (auto &tmp : tmpV) {
+        LOG_DEBUG("%s", tmp.c_str());
     }
-    int num = 35837;
-    LOG_DEBUG("%d %d", num, Coins::countWays(num));
     return 0;
 }
-
