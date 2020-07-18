@@ -14,84 +14,56 @@
 
 using namespace std;
 
-class Object;
-
-class Observer {
+class Product {
    public:
-    Observer(string key, int value) : m_key(key), m_value(value) {}
-    // 外部接口，通知到观察者的操作
-    void update(Object *poj);
-
-   private:
-    string m_key;
-    int m_value;
+    virtual void show() = 0;
+    virtual ~Product() = default;
 };
 
-
-// 被观察者
-class Object {
+class ProductA : public Product {
    public:
-    int m_value;
-    // 添加一位观察者
-    void attach(string key, Observer *p_ob) {
-        if (m_ob.find(key) != m_ob.end()) {
-            LOG_WARN("%s has been attached", key.c_str());
-            return;
-        }
-        m_ob[key] = p_ob;
-        LOG_DEBUG("attach %s", key.c_str());
-    }
+    void show() { LOG_DEBUG("I'm product A"); }
+};
 
-    // 删除观察
-    void deattach(string key) {
-        auto it = m_ob.find(key);
-        if (it != m_ob.end()) {
-            m_ob.erase(it);
-            LOG_DEBUG("erase %s", key);
-        }
-    }
+class ProductB : public Product {
+   public:
+    void show() { LOG_DEBUG("I'm product B"); }
+};
 
-    // 更新值
-    void set_value(int value) {
-        m_value = value;
-        notify();
-    }
+class ProductC : public Product {
+   public:
+    void show() { LOG_DEBUG("I'm product C"); }
+};
 
-   private:
-    map<string, Observer *> m_ob;   // 观察者map
-    // 通知所有观察者执行操作
-    void notify() {
-        for (auto it = m_ob.begin(); it != m_ob.end(); it++) {
-            it->second->update(this);
+class Factory {
+   public:
+    static Product *createProduct(int type) {
+        switch (type) {
+            case 0:
+                return new ProductA();
+            case 1:
+                return new ProductB();
+            case 2:
+                return new ProductC();
+
+            default:
+                return nullptr;
         }
     }
 };
-
-void Observer::update(Object *poj) {
-    if (m_value == poj->m_value) {
-        LOG_DEBUG("%s, hhh", m_key.c_str());
-    }
-}
 
 int main() {
     (void)BugReportRegister("run", ".", nullptr, nullptr);
-    Object obj;
-    Observer a("aObserver", 1);
-    Observer b("bObserver", 2);
-    Observer c("cObserver", 3);
-    Observer d("dObserver", 4);
-
-    // 观察者注册到被观察者
-    obj.attach("a", &a);
-    obj.attach("b", &b);
-    obj.attach("c", &c);
-    obj.attach("a", &a);
 
     while (true) {
         /* code */
         int value;
         cin >> value;
-        obj.set_value(value);
+        auto tmp = Factory::createProduct(value);
+        if (tmp != nullptr) {
+            tmp->show();
+            delete tmp;
+        }
     }
 
     return 0;
