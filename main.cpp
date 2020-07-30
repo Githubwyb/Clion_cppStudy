@@ -9,60 +9,102 @@
 #include <string>
 #include <vector>
 
-#include "bugReport.hpp"
+//#include "bugReport.hpp"
 #include "log.hpp"
 
 using namespace std;
 
-class Product {
+class ProductA {
    public:
     virtual void show() = 0;
-    virtual ~Product() = default;
+    virtual ~ProductA() = default;
 };
 
-class ProductA : public Product {
+class ProductA1 : public ProductA {
    public:
-    void show() { LOG_DEBUG("I'm product A"); }
+    void show() { LOG_DEBUG("I'm product A1"); }
 };
 
-class ProductB : public Product {
+class ProductA2 : public ProductA {
    public:
-    void show() { LOG_DEBUG("I'm product B"); }
+    void show() { LOG_DEBUG("I'm product A2"); }
 };
 
-class ProductC : public Product {
+class ProductB {
    public:
-    void show() { LOG_DEBUG("I'm product C"); }
+    virtual void show() = 0;
+    virtual ~ProductB() = default;
+};
+
+class ProductB1 : public ProductB {
+   public:
+    void show() { LOG_DEBUG("I'm product B1"); }
+};
+
+class ProductB2 : public ProductB {
+   public:
+    void show() { LOG_DEBUG("I'm product B2"); }
 };
 
 class Factory {
    public:
-    static Product *createProduct(int type) {
-        switch (type) {
-            case 0:
-                return new ProductA();
-            case 1:
-                return new ProductB();
-            case 2:
-                return new ProductC();
+    virtual ProductA *createProductA() = 0;
+    virtual ProductB *createProductB() = 0;
+};
 
-            default:
-                return nullptr;
-        }
-    }
+class Factory1 : public Factory {
+   public:
+    ProductA *createProductA() { return new ProductA1(); }
+    ProductB *createProductB() { return new ProductB1(); }
+};
+
+class Factory2 : public Factory {
+   public:
+    ProductA *createProductA() { return new ProductA2(); }
+    ProductB *createProductB() { return new ProductB2(); }
 };
 
 int main() {
-    (void)BugReportRegister("run", ".", nullptr, nullptr);
-
+    //(void)BugReportRegister("run", ".", nullptr, nullptr);
+    auto f1 = new Factory1();
+    auto f2 = new Factory2();
     while (true) {
         /* code */
         int value;
         cin >> value;
-        auto tmp = Factory::createProduct(value);
-        if (tmp != nullptr) {
-            tmp->show();
-            delete tmp;
+        ProductA *tmpa = nullptr;
+        ProductB *tmpb = nullptr;
+        switch (value) {
+            case 0:
+                tmpa = f1->createProductA();
+                tmpa->show();
+                break;
+
+            case 1:
+                tmpb = f1->createProductB();
+                tmpb->show();
+                break;
+
+            case 2:
+                tmpa = f2->createProductA();
+                tmpa->show();
+                break;
+
+            case 3:
+                tmpb = f2->createProductB();
+                tmpb->show();
+                break;
+
+            default:
+                break;
+        }
+
+        if (!tmpa) {
+            delete tmpa;
+        }
+
+        if (!tmpb) {
+            delete tmpb;
         }
     }
 
