@@ -1,3 +1,9 @@
+/*
+ * @Author WangYubo
+ * @Date 09/17/2018
+ * @Description 线程池实现的头文件
+ */
+
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 

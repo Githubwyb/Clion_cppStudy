@@ -1,6 +1,8 @@
-//
-// Created by User on 2019/9/28.
-//
+/*
+ * @Author WangYubo
+ * @Date 09/17/2018
+ * @Description 线程池实现的cpp文件
+ */
 
 #include "threadPool.hpp"
 
