@@ -4,54 +4,47 @@
  * @Description
  */
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
+#include "baseInstance.hpp"
+#include "threadPool.hpp"
 #include "log.hpp"
-//#include "bugReport.hpp"
+
+#include <atomic>
+#include <vector>
+#include <future>
 
 using namespace std;
 
-class Solution {
+class testPool : public threadPool, public BaseInstance<testPool> {
    public:
-    static void FindNumsAppearOnce(vector<int> data, int* num1, int* num2) {
-        int nor = 0;
-        // 先把所有数字异或，结果为两个单独出现的数字的异或
-        for (auto &tmp : data) {
-            nor ^= tmp;
-        }
-
-        int bitNum = 0;
-        // 找到第一个不同的位
-        for (int i = 0; i < 32; ++i) {
-            if (nor & 0x01) {
-                bitNum = i;
-                break;
-            }
-            nor >>= 1;
-        }
-        bitNum = 1 << bitNum;
-        
-        // 根据此位将所有数字分成两组进行异或，最终得到结果
-        *num1 = 0;
-        *num2 = 0;
-        for (auto &tmp : data) {
-            if (tmp & bitNum) {
-                *num1 ^= tmp;
-                continue;
-            }
-
-            *num2 ^= tmp;
-        }
-    }
+    void init(int threadNum) { threadPool::init(threadNum, "testPool"); }
 };
 
-int main() {
-    // (void)BugReportRegister("run", ".", nullptr, nullptr);
-    int a = -1;
-    int b = -1;
-    Solution::FindNumsAppearOnce({2, 4, 3, 6, 3, 2, 5, 5}, &a, &b);
-    LOG_DEBUG("%d %d", a, b);
+atomic<int> addNum;
+atomic<int> result;
+int test() {
+    int add = 0;
+    while (true) {
+        add = addNum++;
+        if (add > 10000) {
+            return add;
+        }
+        result += add;
+    }
+}
+
+int main(int argC, char *arg[]) {
+    LOG_DEBUG("Hello");
+    testPool &pool = testPool::getInstance();
+    pool.init(5);
+    vector<future<int>> ret;
+
+    for (int i = 0; i < 20; i++) {
+        ret.emplace_back(pool.commit(test));
+    }
+    for (auto &tmp : ret) {
+        tmp.wait();
+    }
+
+    LOG_DEBUG("End, result %d", result.load());
     return 0;
 }
