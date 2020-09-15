@@ -9,104 +9,43 @@
 #include <string>
 #include <vector>
 
-//#include "bugReport.hpp"
+#include "bugReport.hpp"
 #include "log.hpp"
 
 using namespace std;
 
-class ProductA {
+// 定义一个复杂产品，暂时先所有都为public
+class Product {
    public:
-    virtual void show() = 0;
-    virtual ~ProductA() = default;
+    string part1;
+    string part2;
+    string part3;
 };
 
-class ProductA1 : public ProductA {
+// 定义工人，也就是建造者
+class Builder {
    public:
-    void show() { LOG_DEBUG("I'm product A1"); }
+    Builder(Product *pProduct) : m_product(pProduct) {}
+    Builder() = delete;
+    virtual void buildPart1() = 0;
+    virtual void buildPart2() = 0;
+    virtual void buildPart3() = 0;
+    Product *getProduct() { return m_product; }
+
+   protected:
+    Product *m_product = nullptr;
 };
 
-class ProductA2 : public ProductA {
+// 定义实际工人继承
+class proABuilder : public Builder {
    public:
-    void show() { LOG_DEBUG("I'm product A2"); }
-};
-
-class ProductB {
-   public:
-    virtual void show() = 0;
-    virtual ~ProductB() = default;
-};
-
-class ProductB1 : public ProductB {
-   public:
-    void show() { LOG_DEBUG("I'm product B1"); }
-};
-
-class ProductB2 : public ProductB {
-   public:
-    void show() { LOG_DEBUG("I'm product B2"); }
-};
-
-class Factory {
-   public:
-    virtual ProductA *createProductA() = 0;
-    virtual ProductB *createProductB() = 0;
-};
-
-class Factory1 : public Factory {
-   public:
-    ProductA *createProductA() { return new ProductA1(); }
-    ProductB *createProductB() { return new ProductB1(); }
-};
-
-class Factory2 : public Factory {
-   public:
-    ProductA *createProductA() { return new ProductA2(); }
-    ProductB *createProductB() { return new ProductB2(); }
+    void buildPart1() { m_product->part1 = "A part1"; }
+    void buildPart2() { m_product->part2 = "A part2"; }
+    void buildPart3() { m_product->part3 = "A part3"; }
 };
 
 int main() {
-    //(void)BugReportRegister("run", ".", nullptr, nullptr);
-    auto f1 = new Factory1();
-    auto f2 = new Factory2();
-    while (true) {
-        /* code */
-        int value;
-        cin >> value;
-        ProductA *tmpa = nullptr;
-        ProductB *tmpb = nullptr;
-        switch (value) {
-            case 0:
-                tmpa = f1->createProductA();
-                tmpa->show();
-                break;
-
-            case 1:
-                tmpb = f1->createProductB();
-                tmpb->show();
-                break;
-
-            case 2:
-                tmpa = f2->createProductA();
-                tmpa->show();
-                break;
-
-            case 3:
-                tmpb = f2->createProductB();
-                tmpb->show();
-                break;
-
-            default:
-                break;
-        }
-
-        if (!tmpa) {
-            delete tmpa;
-        }
-
-        if (!tmpb) {
-            delete tmpb;
-        }
-    }
+    (void)BugReportRegister("run", ".", nullptr, nullptr);
 
     return 0;
 }
