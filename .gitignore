@@ -1,10 +1,33 @@
 # Add any directories, files, or patterns you don't want to be tracked by version control
 /*
-!/README.md
-!/.gitignore
-!/*.cpp
-!/*.hpp
-!/*.c
-!/*.h
-!/makefile
-!/sslvpn.sq3
+!/envrc
+!/build.sh
+
+# makefiles
+!/makefiles/
+/makefiles/*
+!/makefiles/Makefile.*
+
+# src
+!/src/
+
+# lib
+!/lib/
+
+# build
+!/build/
+/build/*
+
+# config
+!/config/
+
+# common sufix
+*.o
+!*.gitkeep
+!*.gitignore
+!*.cpp
+!*.c
+!*.hpp
+!*.h
+!*Makefile
+!*README.md

@@ -1,9 +1,3 @@
-/*
- * @Author WangYubo
- * @Date 09/17/2018
- * @Description 线程池实现的头文件
- */
-
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
@@ -11,15 +5,15 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
 #include <vector>
 
+using Task = std::function<void(void)>;
 class threadPool {
-    using Task = std::function<void(void)>;
-
    private:
     std::vector<std::thread> m_pool;   //线程池
     std::atomic<int> m_idleThreadNum;  //空闲线程数量

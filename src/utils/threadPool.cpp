@@ -1,14 +1,12 @@
-/*
- * @Author WangYubo
- * @Date 09/17/2018
- * @Description 线程池实现的cpp文件
- */
+//
+// Created by User on 2019/9/28.
+//
 
 #include "threadPool.hpp"
-
 #include "log.hpp"
 
 using namespace std;
+
 
 threadPool::~threadPool() {
     m_stoped = true;

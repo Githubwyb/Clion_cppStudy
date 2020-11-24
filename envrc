@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export MAKEFILEDIR="$(pwd)/makefiles"
+export PREFIX_LIB="./"
+export PREFIX_INC="./"
