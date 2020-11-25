@@ -4,4 +4,4 @@ source envrc
 
 make
 
-cp -a config build/
+cp -a config/* build/

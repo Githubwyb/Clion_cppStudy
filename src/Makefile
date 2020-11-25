@@ -2,7 +2,7 @@
 #模块类型，lib库
 TYPE = app
 #要编译的目标
-TARGET = ../build/run
+TARGET = ../build/dcq
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
 SRCDIR = ./app/ ./utils/ ./threepart/iniReader/
@@ -20,7 +20,7 @@ HEADERS =
 LIB += -pthread
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
-INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart/iniReader
+INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart
 
 CFLAGS += -DLINUX -g -Wall -Wshadow -std=c11
 CXXFLAGS += -DLINUX -g -Wall -Wshadow -std=c++11

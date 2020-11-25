@@ -8,32 +8,25 @@
 #include <string>
 #include <vector>
 
-#include "baseInstance.hpp"
-#include "threadPool.hpp"
+#include "configManager.hpp"
 #include "log.hpp"
+#include "threadPool.hpp"
+#include "utils.hpp"
+#include "ensure/ensure.h"
+
 using namespace std;
 
-class testPool : public threadPool, public BaseInstance<testPool> {
-   public:
-    void init(int threadNum) { threadPool::init(threadNum, "testPool"); }
-};
-
-
-void fun_2(int &a,int &b)
-{
-    a++;
-    b++;
-	LOG_DEBUG("print a = %d, b = %d",a, b);
-}
-
 int main(int argC, char *arg[]) {
-    LOG_DEBUG("Hello");
-    int m = 2;
-    int n = 3;
-    auto f4 = std::bind(fun_2, n, placeholders::_1); //表示绑定fun_2的第一个参数为n, fun_2的第二个参数由调用f4的第一个参数（_1）指定。
-    f4(m); //print: m=3,n=4
-    LOG_DEBUG("m %d", m);
-    LOG_DEBUG("n %d", n);
+    LOG_DEBUG("Hello dcq");
+
+    // 读取全局配置，此配置为固定文件，程序目录（非运行目录）同级的global.ini
+    string confPath = utils::getProgramPath() + "/global.ini";
+    auto &config = configManager::getInstance();
+    auto ret = config.loadINIConf(confPath);
+    ENSURE(ret == configManager::SUCCESS)(ret).msg("loadINIConf must be success");
+
+    config.showConf();
+
+    LOG_DEBUG("%d", ret);
     return 0;
 }
-
