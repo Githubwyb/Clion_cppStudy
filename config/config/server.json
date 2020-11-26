@@ -1,0 +1,14 @@
+{
+    "http://icp.chinaz.com": {
+        "type": "text",
+        "requestType": "GET",
+        "param": "/%s",
+        "result": {
+            "companyName": "",
+            "companyType": "",
+            "beianCode": "",
+            "webName": "",
+            "verifyTime": ""
+        }
+    }
+}

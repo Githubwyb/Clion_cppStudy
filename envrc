@@ -1,5 +1,7 @@
 #!/bin/bash
 
 export MAKEFILEDIR="$(pwd)/makefiles"
-export PREFIX_LIB="./"
-export PREFIX_INC="./"
+export PREFIX_INC="$(pwd)/includes"
+
+export OUTPUTDIR="$(pwd)/build"
+export OUTPUTLIBDIR="${OUTPUTDIR}/lib"

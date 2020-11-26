@@ -1,5 +1,5 @@
 TYPE = dir
 
-SUBDIR = src
+SUBDIR = src lib
 
 include $(MAKEFILEDIR)/Makefile.$(TYPE)

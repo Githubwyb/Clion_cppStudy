@@ -1,29 +1,30 @@
 #============Makefile==========
 #模块类型，lib库
-TYPE = app
+TYPE = so
+#模块名称
+MODULE = $(OUTPUTLIBDIR)/libtext
 #要编译的目标
-TARGET = $(OUTPUTDIR)/dcq
+TARGET = $(MODULE).$(TYPE)
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
-SRCDIR = ./app/ ./utils/ ./threepart/iniReader/
+SRCDIR =
 #编译中间文件路径，跟SRCDIR目录不用填，目录使用/结束
 OBJDIR =
 #生成目标文件TARGET，存放路径，跟makefile文件同目录不用填，目录使用/结束
 OUTDIR =
 #目标安装模块（打包用）
-INSTALL_TARGETDIR = $(APP_INSTALL)
+INSTALL_TARGETDIR = $(SO_INSTALL)
 
 #这些HEADERS将被安装到 $(PREFIX_INC) 目录下面，供其他模块使用，多个头文件空格分开
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += -pthread
-
+LIB +=
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
-INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart
+INCLUDE += -I$(PREFIX_INC) -I../includes
 
-CFLAGS += -DLINUX -g -Wall -Wshadow -std=c11
-CXXFLAGS += -DLINUX -g -Wall -Wshadow -std=c++11
+CFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c11
+CXXFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c++11
 LFLAGS +=
 
 
@@ -38,5 +39,3 @@ include $(MAKEFILEDIR)/Makefile.$(TYPE)
 _all:
 
 _install:
-
-

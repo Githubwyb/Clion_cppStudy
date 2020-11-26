@@ -63,48 +63,48 @@ typedef enum LOG_LEVEL {
 class Log {
 
 public:
-    /*
-     * @function 以网络结构显示数据
+    /**
+     * 以网络结构显示数据
      * @param data 数据首地址
      * @param length 数据长度
      */
     static void log_hex(const void *data, int length);
 
-    /*
-     * @function 以二进制显示数据
+    /**
+     * 以二进制显示数据
      * @param data 数据首地址
      * @param length 数据长度
      */
     static void log_binary(const void *data, int length);
 
-    /*
-     * @function 相当于printf的打印
+    /**
+     * 相当于printf的打印
      * @param fmt 格式化的数据
      * @param ... 不定变量
      */
     static void log_print(const char *fmt, ...);
 
-    /*
-     * @function 打印日志头部信息
+    /**
+     * 打印日志头部信息
      * @param level 日志等级
      */
     static void log_header(LOG_LEVEL level);
 
-    /*
-     * @function 切分文件名，将前面的斜杠去除
+    /**
+     * 切分文件名，将前面的斜杠去除
      * @param fileName 文件名
      */
     static const char *splitFileName(const char *fileName);
 
 private:
-    /*
-     * @function 获得level的打印名
+    /**
+     * 获得level的打印名
      * @param level level级别
      */
     static const char *getLevelString(LOG_LEVEL level);
 
-    /*
-     * @function 打印当前时间
+    /**
+     * 打印当前时间
      */
     static void print_currentTime();
 };

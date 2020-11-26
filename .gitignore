@@ -2,11 +2,18 @@
 /*
 !/envrc
 !/build.sh
+!/.vscode
 
 # makefiles
 !/makefiles/
 /makefiles/*
 !/makefiles/Makefile.*
+
+# includes
+!/includes/
+/includes/*
+!/includes/*.hpp
+!/includes/*.h
 
 # src
 !/src/

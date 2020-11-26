@@ -4,16 +4,19 @@
  * @Description 配置管理器
  */
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "baseInstance.hpp"
+#include "common.hpp"
 
 class configManager : public BaseInstance<configManager> {
    public:
     enum {
-        SUCCESS = 0,            // 成功
-        FAILED = -1,            // 统一失败返回
-        FILE_OPEN_ERROR = -2    // 文件打开失败
+        SUCCESS = 0,          // 成功
+        FAILED = -1,          // 统一失败返回
+        FILE_OPEN_ERROR = -2  // 文件打开失败
     };
 
     /**
@@ -29,7 +32,14 @@ class configManager : public BaseInstance<configManager> {
     void showConf(void);
 
    private:
-    std::string confPath;       // 配置路径
-    std::string testStr;        // 测试变量
-    int testInt;                // 测试变量
+    std::string m_confPath;        // 配置路径
+    std::string m_serverConfPath;  // 请求服务器配置文件路径
+    std::vector<std::shared_ptr<QueryServer>> m_vQueryServer;
+
+    /**
+     * 加载请求服务器配置
+     * @param path string 配置路径
+     * @return int 错误码
+     **/
+    int parseServerConf(const std::string &path);
 };
