@@ -1,0 +1,29 @@
+language: cpp
+
+compiler: gcc
+
+jobs:
+  include:
+    - os: linux
+      dist: xenial
+      env: COVERALLS=no
+    - os: osx
+      env: COVERALLS=no
+
+before_script:
+  - if [ "$COVERALLS" = "yes" ]; then
+      pip install --user cpp-coveralls;
+      export CC="$CC --coverage" CXX="$CXX --coverage";
+    fi
+
+script:
+  - ./configure
+  - make libhv
+  - make unittest
+  - make examples
+
+after_success:
+  - if [ "$COVERALLS" = "yes" ]; then
+      scripts/test-coverage.sh;
+      coveralls --gcov-options '\-lp' --include base --include event --include http;
+    fi

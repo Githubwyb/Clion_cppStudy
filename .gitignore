@@ -30,6 +30,11 @@
 
 # common sufix
 *.o
+*.a
+*.so
+!*Makefile.so
+*.ko
+!*Makefile.ko
 !*.gitkeep
 !*.gitignore
 !*.cpp

@@ -31,6 +31,14 @@ class configManager : public BaseInstance<configManager> {
      **/
     void showConf(void);
 
+    /**
+     * 获取所有请求服务器
+     * @return std::vector<std::shared_ptr<QueryServer>> 服务器配置
+     **/
+    const std::vector<std::shared_ptr<QueryServer>> &getQueryServer(void) {
+        return m_vQueryServer;
+    }
+
    private:
     std::string m_confPath;        // 配置路径
     std::string m_serverConfPath;  // 请求服务器配置文件路径

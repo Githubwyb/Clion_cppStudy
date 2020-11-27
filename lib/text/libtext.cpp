@@ -14,7 +14,7 @@ KeyValueMap parserText::parse(KeyValueMap &rules, string &input) {
     KeyValueMap result;
     for (auto it = rules.begin(); it != rules.end(); ++it)
     {
-        
-    }
 
+    }
+    return result;
 }

@@ -1,14 +1,26 @@
 {
+    "http://icp.chinaz.com/home/info": {
+        "type": "text",
+        "requestType": "GET",
+        "param": "?host=%s",
+        "result": {
+            "companyName": "<span>主办单位名称</span>\\s+<p>\\s+<a.*>(.*)</a>",
+            "companyType": "<span>主办单位性质</span>\\s+<p>.*>(.*)</strong>",
+            "beianCode": "<span>网站备案/许可证号</span>\\s+<p>.*>(.*)</font>",
+            "webName": "<span>网站名称</span>\\s+<p>(.*)</p>",
+            "verifyTime": "<span>审核时间</span>\\s+<p>(.*)</p>"
+        }
+    },
     "http://icp.chinaz.com": {
         "type": "text",
         "requestType": "GET",
         "param": "/%s",
         "result": {
-            "companyName": "",
-            "companyType": "",
-            "beianCode": "",
-            "webName": "",
-            "verifyTime": ""
+            "companyName": "<span>主办单位名称</span>\\s+<p>\\s+<a.*>(.*)</a>",
+            "companyType": "<span>主办单位性质</span>\\s+<p>.*>(.*)</strong>",
+            "beianCode": "<span>网站备案/许可证号</span>\\s+<p>.*>(.*)</font>",
+            "webName": "<span>网站名称</span>\\s+<p>(.*)</p>",
+            "verifyTime": "<span>审核时间</span>\\s+<p>(.*)</p>"
         }
     }
 }
