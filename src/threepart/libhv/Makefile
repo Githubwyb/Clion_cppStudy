@@ -48,9 +48,9 @@ libhv:
 	$(CP) $(LIBHV_HEADERS) include/hv
 
 install:
-	# $(MKDIR) $(PROJECTDIR)/src/threepart/libhv
-	# $(CP) include/hv $(PROJECTDIR)/src/threepart/libhv
-	# $(CP) lib/libhv.a lib/libhv.so $(PROJECTDIR)/src/threepart/libhv
+	$(MKDIR) $(INSTALL_INCDIR)
+	$(CP) include/hv/* $(INSTALL_INCDIR)
+	$(CP) lib/libhv.a lib/libhv.so $(INSTALL_LIBDIR)
 
 hmain_test: prepare
 	$(MAKEF) TARGET=$@ SRCDIRS=". base utils" SRCS="examples/hmain_test.cpp"
@@ -95,7 +95,8 @@ unittest: prepare
 	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/date              unittest/date_test.c          base/htime.c
 	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/hatomic_test      unittest/hatomic_test.c       -pthread
 	$(CXX) -g -Wall -std=c++11 -I. -Ibase            -o bin/hatomic_cpp_test  unittest/hatomic_test.cpp     -pthread
-	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/hmutex_test       unittest/hmutex_test.c        base/htime.c -pthread
+	$(CXX) -g -Wall -std=c++11 -I. -Ibase            -o bin/hthread_test      unittest/hthread_test.cpp     -pthread
+	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/hmutex_test       unittest/hmutex_test.c        base/htime.c   -pthread
 	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/connect_test      unittest/connect_test.c       base/hsocket.c base/htime.c
 	$(CC)  -g -Wall -std=c99   -I. -Ibase            -o bin/socketpair_test   unittest/socketpair_test.c    base/hsocket.c
 	$(CXX) -g -Wall -std=c++11 -I. -Ibase            -o bin/defer_test        unittest/defer_test.cpp

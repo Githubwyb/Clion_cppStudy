@@ -30,12 +30,12 @@ struct FormData {
     std::string     filename;
     std::string     content;
 
-    FormData(const char* content = NULL, const char* filename = NULL) {
-        if (content) {
-            this->content = content;
+    FormData(const char* pContent = NULL, const char* pFilename = NULL) {
+        if (pContent) {
+            content = pContent;
         }
-        if (filename) {
-            this->filename = filename;
+        if (pFilename) {
+            filename = pFilename;
         }
     }
     template<typename T>

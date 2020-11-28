@@ -420,7 +420,8 @@ std::string HttpRequest::Dump(bool is_dump_headers, bool is_dump_body) {
 std::string HttpResponse::Dump(bool is_dump_headers, bool is_dump_body) {
     char c_str[256] = {0};
     std::string str;
-    
+    // HTTP/1.1 200 OK\r\n
+    snprintf(c_str, sizeof(c_str), "HTTP/%d.%d %d %s\r\n", http_major, http_minor, status_code, http_status_str(status_code));
     str += c_str;
     if (is_dump_headers) {
         headers["Date"] = gmtime_fmt(time(NULL), c_str);
