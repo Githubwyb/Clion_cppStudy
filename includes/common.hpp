@@ -3,6 +3,8 @@
  * @Date 11/26/2020
  * @Description 公共类型定义头文件
  */
+#ifndef COMMON_HPP
+#define COMMON_HPP
 
 #include <map>
 #include <string>
@@ -18,3 +20,7 @@ struct QueryServer {
 };
 
 using QueryServer = struct QueryServer;
+
+using ParserFunc = int (*)(const KeyValueMap &, std::string &, KeyValueMap &);
+
+#endif /* COMMON_HPP */

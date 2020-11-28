@@ -25,6 +25,7 @@
 │   ├── Makefile.so
 │   └── Makefile.test
 ├── README.md               # 说明文档
+├── includes                # 库文件和app文件共同需要的头文件
 └── src                     # 源代码目录
     ├── app                 # 主程序源文件
     │   └── main.cpp

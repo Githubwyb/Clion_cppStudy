@@ -3,6 +3,8 @@
  * @Date 11/25/2020
  * @Description 配置管理器
  */
+#ifndef CONFIG_MANAGER_HPP
+#define CONFIG_MANAGER_HPP
 
 #include <memory>
 #include <string>
@@ -39,10 +41,19 @@ class configManager : public BaseInstance<configManager> {
         return m_vQueryServer;
     }
 
+    /**
+     * 获取解析库的路径
+     * @return std::string 解析库的路径
+     **/
+    const std::string &getParserLibPath(void) {
+        return m_parserLibPath;
+    }
+
    private:
-    std::string m_confPath;        // 配置路径
-    std::string m_serverConfPath;  // 请求服务器配置文件路径
+    std::string m_confPath;         // 配置路径
+    std::string m_serverConfPath;   // 请求服务器配置文件路径
     std::vector<std::shared_ptr<QueryServer>> m_vQueryServer;
+    std::string m_parserLibPath;    // 解析库的路径
 
     /**
      * 加载请求服务器配置
@@ -51,3 +62,5 @@ class configManager : public BaseInstance<configManager> {
      **/
     int parseServerConf(const std::string &path);
 };
+
+#endif /* CONFIG_MANAGER_HPP */

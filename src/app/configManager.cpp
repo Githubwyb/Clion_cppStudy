@@ -36,6 +36,14 @@ int configManager::loadINIConf(const string &path) {
     // 解析服务器配置文件
     parseServerConf(m_serverConfPath);
 
+    // 解析库的路径
+    m_parserLibPath = iniReader.GetString(
+        "parser", "libPath", utils::getProgramPath() + "/parser/");
+    if (m_parserLibPath[0] != '/') {
+        // 不是绝对路径，拼接程序目录
+        m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
+    }
+
     return SUCCESS;
 }
 
@@ -43,6 +51,7 @@ void configManager::showConf() {
     LOG_INFO("Show conf:");
     PRINT("====================================================\n");
     PRINT("confPath:            '%s'\n", m_confPath.c_str());
+    PRINT("parserLibPath:       '%s'\n", m_parserLibPath.c_str());
     PRINT("serverConfPath:      '%s'\n", m_serverConfPath.c_str());
     // 服务器配置
     PRINT("serverConf:\n");
@@ -130,4 +139,6 @@ int configManager::parseServerConf(const string &path) {
         // 将配置储存到内部变量
         m_vQueryServer.emplace_back(make_shared<QueryServer>(queryServer));
     }
+
+    return SUCCESS;
 }
