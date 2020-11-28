@@ -37,6 +37,7 @@
 !*Makefile.ko
 !*.gitkeep
 !*.gitignore
+!*.gitmodules
 !*.cpp
 !*.c
 !*.hpp

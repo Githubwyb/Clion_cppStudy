@@ -1,0 +1,3 @@
+[submodule "src/threepart/libhv"]
+	path = src/threepart/libhv
+	url = git@gitee.com:giteewyb/libhv.git
