@@ -1,14 +1,5 @@
-cc = g++  -pthread -g -Wall -std=c++11
-prom = run
-deps = $(shell find ./ -name "*.hpp")
-src = $(shell find ./ -name "*.cpp")
-obj = $(src:%.cpp=%.o)
+TYPE = dir
 
-$(prom): $(obj)
-	$(cc) -o $(prom) $(obj)
+SUBDIR = src
 
-%.o: %.cpp $(deps)
-	$(cc) -c $< -o $@
-
-clean:
-	rm -rf $(obj) $(prom)
+include $(MAKEFILEDIR)/Makefile.$(TYPE)

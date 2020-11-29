@@ -1,0 +1,43 @@
+EXTRA_CFLAGS += $(FLAG) -O2 -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB
+CPPFLAGS += $(FLAG) -I$(KERNEL_INC)
+
+ifeq ($(debug), 1)
+        EXTRA_CFLAGS := $(filter-out -O2, $(EXTRA_CFLAGS))
+        EXTRA_CFLAGS += -g -DDEBUG_GLOBAL --coverage
+endif
+
+.PHONY: clean all _all _clean _install test
+
+$(TARGET): all
+
+header:
+ifneq ($(HEADERS),)
+        install -d $(PREFIX_INC)
+        install --verbose --mode=0644 $(HEADERS) $(PREFIX_INC)
+endif
+
+all:$(HEADERS)
+        make -C $(KERNEL_SRC) M=$(PWD) modules
+        make header
+
+install: all $(HEADERS)
+ifneq ($(debug), 1)
+        strip -S $(OUTDIR)$(TARGET)
+endif
+        install -d $(INSTALL_TARGETDIR)
+        install --verbose --mode=0644 $(TARGET) $(INSTALL_TARGETDIR)
+
+cppscan:clean
+        install -d $(CPPTEST_WORKSPACE)/$(TARGET)
+        cpptesttrace --cpptesttraceOutputFile=$(TARGET).bdf --cpptesttraceProjectName=$(TARGET) make || echo
+        cpptestcli -data $(CPPTEST_WORKSPACE) -resource $(TARGET) -bdf $(TARGET).bdf -config user://mustfix -report $(CPPTEST_REPORT)/$(REPORTDIR) || echo
+
+clean:
+        make -C $(KERNEL_SRC) M=$(PWD) clean
+        rm *.gcno *.gcda -f
+
+test:
+        @echo ko have no test
+
+gcov:
+        $(LCOV_GCOV_TOOL) `pwd`

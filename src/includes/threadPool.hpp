@@ -1,9 +1,3 @@
-/*
- * @Author WangYubo
- * @Date 09/17/2018
- * @Description 线程池实现的头文件
- */
-
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
@@ -11,15 +5,44 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
 #include <vector>
 
-class threadPool {
-    using Task = std::function<void(void)>;
+/**
+ * 用法示例
 
+class testPool : public threadPool, public BaseInstance<testPool> {
+   public:
+    // 线程池取名字
+    void init(int threadNum) { threadPool::init(threadNum, "testPool"); }
+};
+
+void main() {
+    // 获取单例
+    auto &pool = testPool::getInstance();
+    // 初始化5个线程
+    pool.init(5);
+    // 定义返回值
+    vector<future<int>> ret;
+
+    for (int i = 0; i < 20; i++) {
+        // 插入任务函数
+        ret.emplace_back(pool.commit(xxxx));
+    }
+    for (auto &tmp : ret) {
+        // 等待结果返回
+        tmp.wait();
+    }
+}
+
+ **/
+
+using Task = std::function<void(void)>;
+class threadPool {
    private:
     std::vector<std::thread> m_pool;   //线程池
     std::atomic<int> m_idleThreadNum;  //空闲线程数量

@@ -1,0 +1,42 @@
+.PHONY: _all _clean _install
+all:_all $(SUBDIR:=.all)
+clean:_clean $(SUBDIR:=.clean)
+install:_install $(SUBDIR:=.install)
+header:$(SUBDIR:=.header)
+best:$(SUBDIR:=.best)
+rebuild:$(SUBDIR:=.rebuild)
+uninstall:$(SUBDIR:=.uninstall)
+cppscan:$(SUBDIR:=.cppscan)
+test:$(SUBDIR:=.test)
+gcov:$(SUBDIR:=.gcov)
+
+%.all:
+	cd $* && $(MAKE) debug=$(debug)
+%.clean:
+	cd $* && $(MAKE) clean
+
+%.install:
+	cd $* && $(MAKE) install debug=$(debug)
+
+%.header:
+	cd $* && $(MAKE) header
+	
+%.cppscan:
+	cd $* && $(MAKE) cppscan
+
+%.best:
+	cd $* && $(MAKE) best
+
+%.rebuild:
+	cd $* && $(MAKE) rebuild
+
+%.uninstall:
+	cd $* && $(MAKE) uninstall
+
+%.test:
+	cd $* && $(MAKE) test
+	
+%.gcov:
+	cd $* && $(MAKE) gcov
+	
+	
