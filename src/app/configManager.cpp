@@ -301,10 +301,12 @@ void configManager::initLog(void) {
     auto logger = spdlog::rotating_logger_mt(
         "mylog", m_logFilePath + "dcq.log", m_logFileSize * 1024, m_logFileRotating);
     spdlog::set_default_logger(logger);
-    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L][%@ %!] %v");
     if (m_logDebug) {
         spdlog::set_level(
             spdlog::level::debug);  // Set global log level to debug
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L][%@ %!] %v");
+    } else {
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L] %v");
     }
     LOG_INFO("log init, level {}", spdlog::get_level());
 }

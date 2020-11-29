@@ -49,10 +49,10 @@
 // 引入第三方库 spdlog
 #include "spdlog/spdlog.h"
 #define LOG_DEBUG SPDLOG_DEBUG
-#define LOG_INFO spdlog::info
-#define LOG_WARN spdlog::warn
-#define LOG_ERROR spdlog::error
-#define LOG_FATAL spdlog::critical
+#define LOG_INFO SPDLOG_INFO
+#define LOG_WARN SPDLOG_WARN
+#define LOG_ERROR SPDLOG_ERROR
+#define LOG_FATAL SPDLOG_CRITICAL
 
 // #define LOG_DEBUG(fmt, ...)
 // #define LOG_WARN(fmt, ...)

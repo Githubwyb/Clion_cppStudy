@@ -76,7 +76,7 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
 
         LOG_DEBUG("{}", server->url);
         // 请求
-        auto reqResult = getRequestResult(*server, domain);
+        auto reqResult = move(getRequestResult(*server, domain));
         if (reqResult == "") {
             LOG_WARN("reqResult is empty, url {}, type {}", server->url,
                      server->type);
@@ -108,12 +108,12 @@ std::string parserManager::getRequestResult(const QueryServer &queryServer,
     LOG_DEBUG("url {}", req.url.c_str());
     HttpResponse res;
     auto ret = http_client_send(&req, &res);
-    string result = res.Dump(false, true);
+    string result = std::move(res.Dump(false, true));
     if (ret != 0 || res.status_code != 200) {
         LOG_DEBUG("{}", result);
         LOG_WARN("* Failed, error {}, ret {}, status_code {}",
                  http_client_strerror(ret), ret, res.status_code);
         return "";
     }
-    return std::move(result);
+    return result;
 }
