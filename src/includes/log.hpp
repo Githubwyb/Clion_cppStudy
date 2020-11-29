@@ -7,11 +7,10 @@
 #ifndef CLION_CPPSTUDY_LOG_HPP
 #define CLION_CPPSTUDY_LOG_HPP
 
-#define DEBUG
-
 #define LOG_HEX(data, length) Log::log_hex(data, length)
 #define LOG_BIN(data, length) Log::log_binary(data, length)
-#define PRINT(fmt, ...) Log::log_print(fmt, ##__VA_ARGS__)
+
+// #define DEBUG
 
 #ifdef DEBUG
 
@@ -41,6 +40,8 @@
     Log::log_print(fmt, ##__VA_ARGS__); \
     Log::log_print("\r\n")
 
+#define PRINT(fmt, ...) Log::log_print(fmt, ##__VA_ARGS__)
+
 #else
 
 #define LOG_DEBUG(fmt, ...)
@@ -49,6 +50,7 @@
 #define LOG_ERROR(fmt, ...)
 #define LOG_FATAL(fmt, ...)
 #define LOG_PRINT(fmt, ...)
+#define PRINT(fmt, ...)
 
 #endif
 

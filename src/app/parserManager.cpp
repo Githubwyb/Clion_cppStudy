@@ -66,15 +66,23 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
     auto &config = configManager::getInstance();
     auto vQueryServer = config.getQueryServer();
     for (auto &server : vQueryServer) {
-        LOG_DEBUG("%s", server->url.c_str());
         // 获取解析函数
-        auto reqResult = getRequestResult(*server, domain);
-        if (reqResult == "") {
+        auto parser = getParserFunc(server->type);
+        if (parser == nullptr) {
+            LOG_WARN("Can't load server parser, url %s, type %s",
+                     server->url.c_str(), server->type.c_str());
             continue;
         }
 
-        // 解析
-        auto parser = getParserFunc(server->type);
+        LOG_DEBUG("%s", server->url.c_str());
+        // 请求
+        auto reqResult = getRequestResult(*server, domain);
+        if (reqResult == "") {
+            LOG_WARN("reqResult is empty, url %s, type %s", server->url.c_str(),
+                     server->type.c_str());
+            continue;
+        }
+
         KeyValueMap result;
         // 获取结果
         auto ret = parser(server->result, reqResult, result);
@@ -95,15 +103,14 @@ std::string parserManager::getRequestResult(const QueryServer &queryServer,
     req.method = HTTP_GET;
     char url[MAX_URL_LEN + 1] = {0};
     string format = queryServer.url + queryServer.param;
-    snprintf(url, MAX_URL_LEN, format.c_str(), "sina.com");
+    snprintf(url, MAX_URL_LEN, format.c_str(), domain.c_str());
     req.url = url;
     LOG_DEBUG("url %s", req.url.c_str());
     HttpResponse res;
     auto ret = http_client_send(&req, &res);
-    if (ret != 0) {
-        printf("* Failed:%s:%d\n", http_client_strerror(ret), ret);
+    if (ret != 0 || res.status_code != 200) {
+        PRINT("* Failed:%s:%d\n", http_client_strerror(ret), ret);
         return "";
     }
-
     return std::move(res.Dump(false, true));
 }

@@ -5,7 +5,10 @@
  */
 #include "configManager.hpp"
 
+#include <unistd.h>
+
 #include <fstream>
+#include <iostream>
 
 #include "iniReader/INIReader.h"
 #include "log.hpp"
@@ -17,31 +20,43 @@ using namespace std;
 using namespace rapidjson;
 
 int configManager::loadINIConf(const string &path) {
-    auto iniReader = INIReader(path);
+    if (m_confPath == "") {
+        m_confPath = path;
+    }
+
+    auto iniReader = INIReader(m_confPath);
     auto ret = iniReader.ParseError();
     if (ret != 0) {
-        LOG_ERROR("file %s open failed, ret %d", path.c_str(), ret);
+        LOG_ERROR("file %s open failed, ret %d", m_confPath.c_str(), ret);
         return FILE_OPEN_ERROR;
     }
 
-    // 赋值各个配置项
-    m_confPath = path;
-    // 请求服务器配置路径
-    m_serverConfPath = iniReader.GetString(
-        "server", "confPath", utils::getProgramPath() + "/config/server.json");
-    if (m_serverConfPath[0] != '/') {
-        // 不是绝对路径，拼接程序目录
-        m_serverConfPath = utils::getProgramPath() + "/" + m_serverConfPath;
+    // 请求服务器配置路径，参数解析到此参数就不用global.ini中的参数
+    if (m_serverConfPath == "") {
+        m_serverConfPath = iniReader.GetString(
+            "server", "confPath",
+            utils::getProgramPath() + "/config/server.json");
+        if (m_serverConfPath[0] != '/') {
+            // 不是绝对路径，拼接程序目录
+            m_serverConfPath = utils::getProgramPath() + "/" + m_serverConfPath;
+        }
     }
     // 解析服务器配置文件
-    parseServerConf(m_serverConfPath);
+    ret = parseServerConf(m_serverConfPath);
+    if (ret != SUCCESS) {
+        LOG_ERROR("file %s parse failed, ret %d", m_serverConfPath.c_str(),
+                  ret);
+        return ret;
+    }
 
-    // 解析库的路径
-    m_parserLibPath = iniReader.GetString(
-        "parser", "libPath", utils::getProgramPath() + "/parser/");
-    if (m_parserLibPath[0] != '/') {
-        // 不是绝对路径，拼接程序目录
-        m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
+    // 解析库的路径，参数解析到此参数就不用global.ini中的参数
+    if (m_parserLibPath == "") {
+        m_parserLibPath = iniReader.GetString(
+            "parser", "libPath", utils::getProgramPath() + "/parser/");
+        if (m_parserLibPath[0] != '/') {
+            // 不是绝对路径，拼接程序目录
+            m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
+        }
     }
 
     return SUCCESS;
@@ -52,6 +67,7 @@ void configManager::showConf() {
     PRINT("====================================================\n");
     PRINT("confPath:            '%s'\n", m_confPath.c_str());
     PRINT("parserLibPath:       '%s'\n", m_parserLibPath.c_str());
+    PRINT("inputFilePath:       '%s'\n", m_inputFile.c_str());
     PRINT("serverConfPath:      '%s'\n", m_serverConfPath.c_str());
     // 服务器配置
     PRINT("serverConf:\n");
@@ -68,6 +84,10 @@ void configManager::showConf() {
                   it->second.c_str());
         }
     }
+    PRINT("input:\n");
+    for (auto &item : m_vInput) {
+        PRINT("    %s\n", item.c_str());
+    }
 
     PRINT("====================================================\n");
 }
@@ -80,7 +100,7 @@ int configManager::parseServerConf(const string &path) {
     d.ParseStream(isw);
     if (d.HasParseError()) {
         LOG_ERROR("ParseError %d", d.GetParseError());
-        return -1;
+        return FILE_OPEN_ERROR;
     }
 
     // 遍历获取服务器配置
@@ -140,5 +160,114 @@ int configManager::parseServerConf(const string &path) {
         m_vQueryServer.emplace_back(make_shared<QueryServer>(queryServer));
     }
 
+    return m_vQueryServer.size() == 0 ? SERVER_CONF_EMPTY : SUCCESS;
+}
+
+int configManager::getCmdLineParam(int argC, char *argV[]) {
+    char ch;
+    while ((ch = getopt(argC, argV, "c:s:p:f:")) != EOF) {
+        switch (ch) {
+            case 'c':
+                // global.ini
+                m_confPath = optarg;
+                break;
+
+            case 's':
+                // server.json
+                m_serverConfPath = optarg;
+                break;
+
+            case 'p':
+                // parserLibPath/
+                m_parserLibPath = optarg;
+                // 防止输入未加最后的/
+                if (*(m_parserLibPath.end() - 1) != '/') {
+                    m_parserLibPath += "/";
+                }
+                break;
+
+            case 'f':
+                // 输入文件
+                m_inputFile = optarg;
+                break;
+
+            default:
+                usage();
+                return PARAM_PARSE_ERROR;
+        }
+    }
+
+    argC -= optind;
+    argV += optind;
+
+    // 没参数输入
+    if (m_inputFile == "" && argC == 0) {
+        LOG_INFO("Need input a domain");
+        usage();
+        return PARAM_PARSE_ERROR;
+    }
+
+    m_vInput.clear();
+    // 解析文件输入
+    if (m_inputFile != "" && parseInputFile(m_inputFile) != SUCCESS) {
+        LOG_INFO("input file parse error, please check -f");
+        usage();
+        return PARAM_PARSE_ERROR;
+    }
+
+    // 命令行输入
+    for (int index = 0; index < argC; ++index) {
+        m_vInput.emplace_back(argV[index]);
+    }
+
+    return SUCCESS;
+}
+
+void configManager::usage(void) {
+    cout << "Usage: dcq [options...] <domain|file>" << endl
+         << "    -c <filePath> System config file, global.ini" << endl
+         << "                  default (program path)/global.ini" << endl
+         << "    -s <filePath> Server config to parse domain, server.json"
+         << endl
+         << "                  default parse from global.ini::server.confPath"
+         << endl
+         << "    -p <dirPath>  Parser so lib path, parserLibPath/" << endl
+         << "                  default parse from global.ini::parser.libPath"
+         << endl
+         << "                  use parserLibPath/lib(type).so to parse domain "
+            "which type defined in server.json"
+         << endl
+         << endl;
+}
+
+int configManager::parseInputFile(const std::string &path) {
+    //读txt文件
+    ifstream infile;             //定义文件变量
+    infile.open(path, ios::in);  //打开txt
+    if (!infile) {
+        LOG_ERROR("Read file %s failed", path.c_str());
+        return FILE_OPEN_ERROR;
+    }
+
+    string temp;
+    //读取一行，直到所有行读完
+    while (getline(infile, temp)) {
+        // 去除换行符和空格
+        int endIndex = temp.size();
+        auto rpos = temp.find('\r');
+        auto spos = temp.find(' ');
+        // 先赋值\r的，空格覆盖此值
+        if (rpos != temp.npos) {
+            endIndex = rpos;
+        }
+        if (spos != temp.npos) {
+            endIndex = spos;
+        }
+
+        if (endIndex != 0) {
+            m_vInput.emplace_back(temp.substr(0, endIndex));
+        }
+    }
+    infile.close();
     return SUCCESS;
 }

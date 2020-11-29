@@ -24,7 +24,7 @@ int parserText::parse(const KeyValueMap &rules, string &input,
         regex_search(input, sm, e);
         // 没匹配到跳过
         if (sm.size() <= 1) {
-            cout << "Can't parse " << it->first << ": " << it->second << endl;
+            // cout << "Can't parse " << it->first << ": " << it->second << endl;
             continue;
         }
         // 匹配到取第一个
