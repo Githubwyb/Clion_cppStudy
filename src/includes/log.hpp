@@ -44,13 +44,23 @@
 
 #else
 
-#define LOG_DEBUG(fmt, ...)
-#define LOG_WARN(fmt, ...)
-#define LOG_INFO(fmt, ...)
-#define LOG_ERROR(fmt, ...)
-#define LOG_FATAL(fmt, ...)
-#define LOG_PRINT(fmt, ...)
-#define PRINT(fmt, ...)
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
+// 引入第三方库 spdlog
+#include "spdlog/spdlog.h"
+#define LOG_DEBUG SPDLOG_DEBUG
+#define LOG_INFO spdlog::info
+#define LOG_WARN spdlog::warn
+#define LOG_ERROR spdlog::error
+#define LOG_FATAL spdlog::critical
+
+// #define LOG_DEBUG(fmt, ...)
+// #define LOG_WARN(fmt, ...)
+// #define LOG_INFO(fmt, ...)
+// #define LOG_ERROR(fmt, ...)
+// #define LOG_FATAL(fmt, ...)
+// #define LOG_PRINT(fmt, ...)
+// #define PRINT(fmt, ...)
 
 #endif
 

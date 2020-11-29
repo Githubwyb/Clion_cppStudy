@@ -32,7 +32,7 @@ ParserFunc parserManager::getParserFunc(const std::string &type) {
     auto libPath = config.getParserLibPath() + "lib" + type + ".so";
     auto handler = dlopen(libPath.c_str(), RTLD_NOW);
     if (handler == nullptr) {
-        LOG_WARN("Can't open lib %s", libPath.c_str());
+        LOG_WARN("Can't open lib {}", libPath.c_str());
         // 保存，下次报错也不用加载
         m_mParser[type] = nullptr;
         return nullptr;
@@ -43,7 +43,7 @@ ParserFunc parserManager::getParserFunc(const std::string &type) {
     auto parser = (ParserFunc)dlsym(handler, "parser");
     const char *dlsym_error = dlerror();
     if (dlsym_error) {
-        LOG_WARN("Cannot load symbol 'parser': %s", dlsym_error);
+        LOG_WARN("Cannot load symbol 'parser': {}", dlsym_error);
         dlclose(handler);
         // 保存，下次报错也不用加载
         m_mParser[type] = nullptr;
@@ -69,17 +69,17 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
         // 获取解析函数
         auto parser = getParserFunc(server->type);
         if (parser == nullptr) {
-            LOG_WARN("Can't load server parser, url %s, type %s",
-                     server->url.c_str(), server->type.c_str());
+            LOG_WARN("Can't load server parser, url {}, type {}", server->url,
+                     server->type);
             continue;
         }
 
-        LOG_DEBUG("%s", server->url.c_str());
+        LOG_DEBUG("{}", server->url);
         // 请求
         auto reqResult = getRequestResult(*server, domain);
         if (reqResult == "") {
-            LOG_WARN("reqResult is empty, url %s, type %s", server->url.c_str(),
-                     server->type.c_str());
+            LOG_WARN("reqResult is empty, url {}, type {}", server->url,
+                     server->type);
             continue;
         }
 
@@ -105,12 +105,15 @@ std::string parserManager::getRequestResult(const QueryServer &queryServer,
     string format = queryServer.url + queryServer.param;
     snprintf(url, MAX_URL_LEN, format.c_str(), domain.c_str());
     req.url = url;
-    LOG_DEBUG("url %s", req.url.c_str());
+    LOG_DEBUG("url {}", req.url.c_str());
     HttpResponse res;
     auto ret = http_client_send(&req, &res);
+    string result = res.Dump(false, true);
     if (ret != 0 || res.status_code != 200) {
-        PRINT("* Failed:%s:%d\n", http_client_strerror(ret), ret);
+        LOG_DEBUG("{}", result);
+        LOG_WARN("* Failed, error {}, ret {}, status_code {}",
+                 http_client_strerror(ret), ret, res.status_code);
         return "";
     }
-    return std::move(res.Dump(false, true));
+    return std::move(result);
 }

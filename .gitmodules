@@ -1,3 +1,6 @@
 [submodule "src/threepart/libhv"]
 	path = src/threepart/libhv
 	url = git@gitee.com:giteewyb/libhv.git
+[submodule "src/threepart/spdlog"]
+	path = src/threepart/spdlog
+	url = https://github.com/gabime/spdlog.git

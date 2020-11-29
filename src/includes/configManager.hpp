@@ -70,6 +70,10 @@ class configManager : public BaseInstance<configManager> {
     std::string m_parserLibPath;       // 解析库的路径
     std::vector<std::string> m_vInput; // 输入的要解析的字段
     std::string m_inputFile;           // 输入文件路径
+    std::string m_logFilePath;         // 日志输出路径
+    size_t m_logFileSize;              // 单个文件日志大小
+    size_t m_logFileRotating;          // 保留几个日志文件
+    bool m_logDebug = false;           // 是否开启调试
 
     /**
      * 加载请求服务器配置
@@ -84,6 +88,11 @@ class configManager : public BaseInstance<configManager> {
      * @return int 错误码
      **/
     int parseInputFile(const std::string &path);
+
+    /**
+     * 日志初始化
+     **/
+    void initLog(void);
 
     /**
      * 打印命令行使用说明

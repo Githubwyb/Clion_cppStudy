@@ -27,7 +27,8 @@ int configManager::loadINIConf(const string &path) {
     auto iniReader = INIReader(m_confPath);
     auto ret = iniReader.ParseError();
     if (ret != 0) {
-        LOG_ERROR("file %s open failed, ret %d", m_confPath.c_str(), ret);
+        cout << "file " << m_confPath << " open failed, ret " << to_string(ret)
+             << endl;
         return FILE_OPEN_ERROR;
     }
 
@@ -44,8 +45,8 @@ int configManager::loadINIConf(const string &path) {
     // 解析服务器配置文件
     ret = parseServerConf(m_serverConfPath);
     if (ret != SUCCESS) {
-        LOG_ERROR("file %s parse failed, ret %d", m_serverConfPath.c_str(),
-                  ret);
+        cout << "file " << m_serverConfPath << " parse failed, ret "
+             << to_string(ret) << endl;
         return ret;
     }
 
@@ -59,37 +60,55 @@ int configManager::loadINIConf(const string &path) {
         }
     }
 
+    // 解析日志相关参数
+    m_logFilePath = iniReader.GetString("log", "logPath",
+                                        utils::getProgramPath() + "/logs/");
+    if (m_logFilePath[0] != '/') {
+        // 不是绝对路径，拼接程序目录
+        m_logFilePath = utils::getProgramPath() + "/" + m_logFilePath;
+    }
+    m_logFileSize = iniReader.GetInteger("log", "logFileSize", 5000);
+    m_logFileRotating = iniReader.GetInteger("log", "logFileRotating", 3);
+    initLog();
+
+    showConf();
     return SUCCESS;
 }
 
 void configManager::showConf() {
-    LOG_INFO("Show conf:");
-    PRINT("====================================================\n");
-    PRINT("confPath:            '%s'\n", m_confPath.c_str());
-    PRINT("parserLibPath:       '%s'\n", m_parserLibPath.c_str());
-    PRINT("inputFilePath:       '%s'\n", m_inputFile.c_str());
-    PRINT("serverConfPath:      '%s'\n", m_serverConfPath.c_str());
+    // 仅调试输出
+    if (!m_logDebug) return;
+
+    string printStr = "====================================================\n";
+    printStr += "confPath:            '" + m_confPath + "'\n";
+    printStr += "parserLibPath:       '" + m_parserLibPath + "'\n";
+    printStr += "logFilePath:         '" + m_logFilePath + "'\n";
+    printStr += "logFileSize:         '" + to_string(m_logFileSize) + "'\n";
+    printStr += "logFileRotating:     '" + to_string(m_logFileRotating) + "'\n";
+    printStr += "inputFilePath:       '" + m_inputFile + "'\n";
+    printStr += "serverConfPath:      '" + m_serverConfPath + "'\n";
     // 服务器配置
-    PRINT("serverConf:\n");
+    printStr += "serverConf:\n";
     for (auto &pItem : m_vQueryServer) {
-        PRINT("    server:\n");
-        PRINT("        url:         '%s'\n", pItem->url.c_str());
-        PRINT("        type:        '%s'\n", pItem->type.c_str());
-        PRINT("        requestType: '%s'\n", pItem->requestType.c_str());
-        PRINT("        param:       '%s'\n", pItem->param.c_str());
-        PRINT("        result:\n");
+        printStr += "    server:\n";
+        printStr += "        url:         '" + pItem->url + "'\n";
+        printStr += "        type:        '" + pItem->type + "'\n";
+        printStr += "        requestType: '" + pItem->requestType + "'\n";
+        printStr += "        param:       '" + pItem->param + "'\n";
+        printStr += "        result:\n";
         // 打印期望结果
         for (auto it = pItem->result.begin(); it != pItem->result.end(); ++it) {
-            PRINT("            '%s': '%s'\n", it->first.c_str(),
-                  it->second.c_str());
+            printStr +=
+                "            '" + it->first + "': '" + it->second + "'\n";
         }
     }
-    PRINT("input:\n");
+    printStr += "input:\n";
     for (auto &item : m_vInput) {
-        PRINT("    %s\n", item.c_str());
+        printStr += "    '" + item + "'\n";
     }
 
-    PRINT("====================================================\n");
+    printStr += "====================================================\n";
+    LOG_DEBUG("Show conf:\n{}", printStr);
 }
 
 int configManager::parseServerConf(const string &path) {
@@ -99,7 +118,7 @@ int configManager::parseServerConf(const string &path) {
     Document d;
     d.ParseStream(isw);
     if (d.HasParseError()) {
-        LOG_ERROR("ParseError %d", d.GetParseError());
+        LOG_ERROR("ParseError {}", d.GetParseError());
         return FILE_OPEN_ERROR;
     }
 
@@ -107,9 +126,9 @@ int configManager::parseServerConf(const string &path) {
     for (Value::ConstMemberIterator itr = d.MemberBegin(); itr != d.MemberEnd();
          itr++) {
         auto key = itr->name.GetString();
-        LOG_DEBUG("server: %s", key);
+        LOG_DEBUG("server: {}", key);
         if (!itr->value.IsObject()) {
-            LOG_WARN("key '%s' is not a object", key);
+            LOG_WARN("key '{}' is not a object", key);
             continue;
         }
         auto serverConf = itr->value.GetObject();
@@ -120,35 +139,35 @@ int configManager::parseServerConf(const string &path) {
         queryServer.url = key;
         // 结果类型
         if (!serverConf["type"].IsString()) {
-            LOG_WARN("server(%s).type is not a string", key);
+            LOG_WARN("server({}).type is not a string", key);
             continue;
         }
         queryServer.type = serverConf["type"].GetString();
 
         // 请求类型
         if (!serverConf["requestType"].IsString()) {
-            LOG_WARN("server(%s).requestType is not a string", key);
+            LOG_WARN("server({}).requestType is not a string", key);
             continue;
         }
         queryServer.requestType = serverConf["requestType"].GetString();
 
         // 请求参数结构
         if (!serverConf["param"].IsString()) {
-            LOG_WARN("server(%s).param is not a string", key);
+            LOG_WARN("server({}).param is not a string", key);
             continue;
         }
         queryServer.param = serverConf["param"].GetString();
 
         // 期望返回结果
         if (!serverConf["result"].IsObject()) {
-            LOG_WARN("server(%s).result is not a object", key);
+            LOG_WARN("server({}).result is not a object", key);
             continue;
         }
         auto result = serverConf["result"].GetObject();
         for (Value::ConstMemberIterator it = result.MemberBegin();
              it != result.MemberEnd(); ++it) {
             if (!it->value.IsString()) {
-                LOG_WARN("server(%s).result.'%s' is not a string", key,
+                LOG_WARN("server({}).result.'{}' is not a string", key,
                          it->name.GetString());
                 continue;
             }
@@ -165,8 +184,13 @@ int configManager::parseServerConf(const string &path) {
 
 int configManager::getCmdLineParam(int argC, char *argV[]) {
     char ch;
-    while ((ch = getopt(argC, argV, "c:s:p:f:")) != EOF) {
+    while ((ch = getopt(argC, argV, "dc:s:p:f:")) != EOF) {
         switch (ch) {
+            case 'd':
+                // debug mode
+                m_logDebug = true;
+                break;
+
             case 'c':
                 // global.ini
                 m_confPath = optarg;
@@ -202,7 +226,7 @@ int configManager::getCmdLineParam(int argC, char *argV[]) {
 
     // 没参数输入
     if (m_inputFile == "" && argC == 0) {
-        LOG_INFO("Need input a domain");
+        cout << "Need input a domain" << endl;
         usage();
         return PARAM_PARSE_ERROR;
     }
@@ -210,7 +234,7 @@ int configManager::getCmdLineParam(int argC, char *argV[]) {
     m_vInput.clear();
     // 解析文件输入
     if (m_inputFile != "" && parseInputFile(m_inputFile) != SUCCESS) {
-        LOG_INFO("input file parse error, please check -f");
+        cout << "input file parse error, please check -f" << endl;
         usage();
         return PARAM_PARSE_ERROR;
     }
@@ -245,7 +269,7 @@ int configManager::parseInputFile(const std::string &path) {
     ifstream infile;             //定义文件变量
     infile.open(path, ios::in);  //打开txt
     if (!infile) {
-        LOG_ERROR("Read file %s failed", path.c_str());
+        LOG_ERROR("Read file {} failed", path.c_str());
         return FILE_OPEN_ERROR;
     }
 
@@ -270,4 +294,17 @@ int configManager::parseInputFile(const std::string &path) {
     }
     infile.close();
     return SUCCESS;
+}
+
+#include "spdlog/sinks/rotating_file_sink.h"
+void configManager::initLog(void) {
+    auto logger = spdlog::rotating_logger_mt(
+        "mylog", m_logFilePath + "dcq.log", m_logFileSize * 1024, m_logFileRotating);
+    spdlog::set_default_logger(logger);
+    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L][%@ %!] %v");
+    if (m_logDebug) {
+        spdlog::set_level(
+            spdlog::level::debug);  // Set global log level to debug
+    }
+    LOG_INFO("log init, level {}", spdlog::get_level());
 }
