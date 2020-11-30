@@ -1,5 +1,5 @@
 TYPE = dir
 
-SUBDIR = text
+SUBDIR = text json
 
 include $(MAKEFILEDIR)/Makefile.$(TYPE)

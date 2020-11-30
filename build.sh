@@ -14,6 +14,11 @@ if [ ! -f "src/threepart/libhv/lib/libhv.a" ]; then
     cd src/threepart/libhv
     bash configure
     make
+    if [ "$?" -ne 0 ]; then
+        echo "Build libhv failed"
+        rm -f "lib/libhv.a"
+        exit
+    fi
     cd -
 fi
 # sdplog
@@ -21,6 +26,11 @@ if [ ! -f "src/threepart/spdlog/build/libspdlog.a" ]; then
     mkdir src/threepart/spdlog/build
     cd src/threepart/spdlog/build
     cmake .. && make
+    if [ "$?" -ne 0 ]; then
+        echo "Build libhv failed"
+        rm -f "lib/libhv.a"
+        exit
+    fi
     cd -
 fi
 
@@ -28,3 +38,5 @@ fi
 make
 
 cp -a config/* build/
+
+ln -sf build/dcq dcq

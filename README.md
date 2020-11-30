@@ -1,52 +1,40 @@
-# Clion_cppStudy
+# dcq
 
-- create: 2018.09.15
+- create: 2020.11.25
 - author: wangyubo
 
 ## 工程说明
 
-自己用做练习C++编写学习使用
-
-```shell
-.
-├── build                   # 编译生成目录
-├── envrc                   # 环境变量文件
-├── lib
-│   └── threepart           # 第三方库
-│       └── sqlite3
-│           ├── sqlite3.c
-│           ├── sqlite3ext.h
-│           └── sqlite3.h
-├── Makefile                # makefile入口
-├── makefiles               # 通用makefile
-│   ├── Makefile.app
-│   ├── Makefile.dir
-│   ├── Makefile.ko
-│   ├── Makefile.so
-│   └── Makefile.test
-├── README.md               # 说明文档
-├── includes                # 库文件和app文件共同需要的头文件
-└── src                     # 源代码目录
-    ├── app                 # 主程序源文件
-    │   └── main.cpp
-    ├── includes            # 公共头文件
-    │   ├── algorithm.hpp
-    │   ├── baseInstance.hpp
-    │   ├── log.hpp
-    │   └── threadPool.hpp
-    └── utils               # 工具源文件
-        ├── algorithm.cpp
-        ├── log.cpp
-        └── threadPool.cpp
-```
+域名解析工具
 
 ## 编译说明
 
 ```shell
-# 加载环境变量
-source envrc
-# 编译
-make
+bash build.sh
 ```
 
 - 生成文件会存放在build目录下
+- 安装可以将build目录整体拷贝到一个地方，将build/dcq添加一个软连接即可
+
+## 运行说明
+
+```shell
+Usage: dcq [options...] <domain|-f file>
+    -c <filePath> System config file, global.ini
+                  default (program path)/global.ini
+    -s <filePath> Server config to parse domain, server.json
+                  default parse from global.ini::server.confPath
+    -p <dirPath>  Parser so lib path, parserLibPath/
+                  default parse from global.ini::parser.libPath
+                  use parserLibPath/lib(type).so to parse domain which type defined in server.json
+```
+
+## 日志和调试
+
+### 日志
+
+存放在build/logs/dcq.log，默认只打info
+
+## 调试
+
+加上-d选项，将会打印debug日志，并会输出日志所在文件名、行数和函数

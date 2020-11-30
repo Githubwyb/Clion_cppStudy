@@ -32,18 +32,11 @@ int main(int argC, char *argV[]) {
         return -1;
     }
 
+    auto &parser = parserManager::getInstance();
     // 解析域名
     for (auto &input : config.getInput()) {
-        auto &result = parserManager::getInstance().parseOne(input.c_str());
-   		if (result.size() == 1) {
-            for (auto &item : result) {
-                cout << input << ": " << item.second << endl;
-            }
-            continue;
-        }
-        for (auto &item : result) {
-            cout << item.first << ": " << item.second << endl;
-        }
- 	}
+        auto &result = parser.parseOne(input);
+        parser.printResult(input, result);
+    }
     return 0;
 }

@@ -248,7 +248,7 @@ int configManager::getCmdLineParam(int argC, char *argV[]) {
 }
 
 void configManager::usage(void) {
-    cout << "Usage: dcq [options...] <domain|file>" << endl
+    cout << "Usage: dcq [options...] <domain|-f file>" << endl
          << "    -c <filePath> System config file, global.ini" << endl
          << "                  default (program path)/global.ini" << endl
          << "    -s <filePath> Server config to parse domain, server.json"

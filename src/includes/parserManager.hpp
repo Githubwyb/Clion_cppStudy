@@ -27,6 +27,13 @@ class parserManager : public BaseInstance<parserManager> {
      **/
     const KeyValueMap parseOne(const std::string &);
 
+    /**
+     * 打印输出结果
+     * @param domain const std::string & 要解析的域名
+     * @param result const KeyValueMap & 解析的结果
+     **/
+    void printResult(const std::string &domain, const KeyValueMap &result);
+
    private:
     std::vector<void *> m_vLibHandler;            // 动态库的句柄
     std::map<std::string, ParserFunc> m_mParser;  // 动态库的解析函数
