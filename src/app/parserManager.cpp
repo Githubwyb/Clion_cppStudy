@@ -87,7 +87,7 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
         // 获取结果
         auto ret = parser(server->result, reqResult, result);
         if (ret != 0) {
-            LOG_WARN("parse failed, reqResult %s", reqResult.c_str());
+            LOG_WARN("parse failed, reqResult {}", reqResult);
             continue;
         }
 

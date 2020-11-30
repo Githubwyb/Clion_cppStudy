@@ -35,9 +35,15 @@ int main(int argC, char *argV[]) {
     // 解析域名
     for (auto &input : config.getInput()) {
         auto &result = parserManager::getInstance().parseOne(input.c_str());
-        for (auto &item : result) {
-            cout << input << ": " << item.second << endl;
+   		if (result.size() == 1) {
+            for (auto &item : result) {
+                cout << input << ": " << item.second << endl;
+            }
+            continue;
         }
-    }
+        for (auto &item : result) {
+            cout << item.first << ": " << item.second << endl;
+        }
+ 	}
     return 0;
 }

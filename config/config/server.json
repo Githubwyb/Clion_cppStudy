@@ -1,4 +1,18 @@
 {
+
+    "http://apidata.chinaz.com/CallAPI/Domain": {
+        "type": "json",
+        "requestType": "GET",
+        "param": "?key=41e178fef26848bca2bc26b4c7c260db&domainName=%s",
+        "result": {
+            "companyName": "Result.CompanyName",
+            "companyType": "Result.CompanyType",
+            "beianCode": "Result.SiteLicense",
+            "webName": "Result.SiteName",
+            "mainPage": "Result.MainPage",
+            "verifyTime": "Result.VerifyTime"
+        }
+    },
     "http://icp.chinaz.com/home/info": {
         "type": "text",
         "requestType": "GET",
