@@ -50,9 +50,9 @@ endif
 
 $(OUTDIR)$(TARGET): $(OBJS)
 ifeq ($(CPP_OBJS),)
-	$(CC)  $(LFLAGS) -o $(OUTDIR)$(TARGET) $^ -L$(PREFIX_LIB) $(LIB)
+	$(CC)  -o $(OUTDIR)$(TARGET) $^ -L$(PREFIX_LIB) $(LIB) $(LFLAGS)
 else
-	$(CXX) $(LFLAGS) -o $(OUTDIR)$(TARGET) $^ -L$(PREFIX_LIB) $(LIB)
+	$(CXX) -o $(OUTDIR)$(TARGET) $^ -L$(PREFIX_LIB) $(LIB) $(LFLAGS)
 endif
 	make header
 

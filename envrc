@@ -1,9 +1,12 @@
 #!/bin/bash
 
 export PROJECTDIR="$(pwd)"
+export OUTPUTDIR="${PROJECTDIR}/build"
+export OUTPUTLIBDIR="${OUTPUTDIR}/lib"
+
 export MAKEFILEDIR="${PROJECTDIR}/makefiles"
 export PREFIX_INC="${PROJECTDIR}/includes"
-export PREFIX_LIB="./"
+export PREFIX_LIB="${OUTPUTLIBDIR}"
 
-export OUTPUTDIR="${PROJECTDIR}/build"
-export OUTPUTLIBDIR="${OUTPUTDIR}/parser"
+export BINNAME="run"
+
