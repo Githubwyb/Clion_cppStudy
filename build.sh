@@ -5,8 +5,8 @@ source envrc
 git submodule init && git submodule update
 
 # create folders
-rm -rf build
-mkdir -p build/parser
+rm -rf "$OUTPUTDIR"
+mkdir -p "$OUTPUTLIBDIR"
 
 # build lib
 # libhv
@@ -37,6 +37,8 @@ fi
 # build main program
 make
 
-cp -a config/* build/
+if [ -d "./config" ]; then
+    cp -a config/* "$OUTPUTDIR"
+fi
 
-ln -sf build/dcq dcq
+ln -sf "${OUTPUTDIR}/${BINNAME}" "./${BINNAME}"

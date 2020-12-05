@@ -2,7 +2,7 @@
 #模块类型，lib库
 TYPE = app
 #要编译的目标
-TARGET = $(OUTPUTDIR)/dcq
+TARGET = $(OUTPUTDIR)/$(BINNAME)
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
 SRCDIR = ./app/ ./utils/ ./threepart/iniReader/
