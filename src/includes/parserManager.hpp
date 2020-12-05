@@ -27,13 +27,6 @@ class parserManager : public BaseInstance<parserManager> {
      **/
     const KeyValueMap parseOne(const std::string &);
 
-    /**
-     * 打印输出结果
-     * @param domain const std::string & 要解析的域名
-     * @param result const KeyValueMap & 解析的结果
-     **/
-    void printResult(const std::string &domain, const KeyValueMap &result);
-
    private:
     std::vector<void *> m_vLibHandler;            // 动态库的句柄
     std::map<std::string, ParserFunc> m_mParser;  // 动态库的解析函数
@@ -46,14 +39,6 @@ class parserManager : public BaseInstance<parserManager> {
      * @return ParserFunc 根据类型加载的解析函数
      **/
     ParserFunc getParserFunc(const std::string &);
-
-    /**
-     * 获取网络请求结果
-     * @param server const QueryServer & 服务器配置
-     * @param domain const std::string & 要解析的域名
-     * @return std::string & 请求的结果
-     **/
-    std::string getRequestResult(const QueryServer &, const std::string &);
 };
 
 #endif /* PARSER_MANAGER_HPP */

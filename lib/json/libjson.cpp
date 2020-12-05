@@ -9,13 +9,12 @@
 #include <vector>
 
 #include "parseBase.hpp"
-#include "rapidjson/document.h"
+#include "json.hpp"
 
 DEFINE_CLASS(parserJson)
 DEFINE_FUNC(parserJson)
 
 using namespace std;
-using namespace rapidjson;
 
 //字符串分割函数
 vector<string> split(string str, const string &pattern) {
@@ -36,10 +35,11 @@ vector<string> split(string str, const string &pattern) {
 
 int parserJson::parse(const KeyValueMap &rules, string &input,
                       KeyValueMap &result) {
-    // 解析json文件
-    Document d;
-    d.Parse(input.c_str());
-    if (d.HasParseError()) {
+    nlohmann::json j;
+    // json文件解析
+    try {
+        j = nlohmann::json::parse(input);
+    } catch (...) {
         cout << "parse error, input " << input << endl;
         return -1;
     }
@@ -53,8 +53,9 @@ int parserJson::parse(const KeyValueMap &rules, string &input,
             continue;
         }
 
-        Value::ConstMemberIterator iter = d.FindMember(vKeys[0].c_str());
-        if (iter == d.MemberEnd()) {
+        // 取第一个key
+        auto iter = j[vKeys[0]];
+        if (iter.is_null()) {
             cout << "Can't find key" << it->second << " in json " << input
                  << ", " << it->first << endl;
             continue;
@@ -63,15 +64,15 @@ int parserJson::parse(const KeyValueMap &rules, string &input,
         auto len = vKeys.size();
         size_t i = 1;
         for (; i < len; ++i) {
-            if (!iter->value.IsObject()) {
+            if (!iter.is_object()) {
                 if (i == len - 1) {
                     continue;
                 }
                 break;
             }
 
-            Value::ConstMemberIterator tmp = iter->value.FindMember(vKeys[i].c_str());
-            if (tmp == iter->value.MemberEnd()) {
+            auto tmp = iter[vKeys[i]];
+            if (tmp.is_null()) {
                 cout << "Can't find key" << it->second << " in json " << input
                      << ", " << it->first << endl;
                 iter = tmp;
@@ -86,13 +87,13 @@ int parserJson::parse(const KeyValueMap &rules, string &input,
             continue;
         }
 
-        if (!iter->value.IsString()) {
+        if (!iter.is_string()) {
             cout << "key " << it->second << " in " << input << " is not string, " << it->first << endl;
             continue;
         }
 
         // 匹配到取第一个
-        result[it->first.c_str()] = iter->value.GetString();
+        result[it->first.c_str()] = iter;
     }
 
     return 0;

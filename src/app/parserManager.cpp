@@ -9,8 +9,8 @@
 #include <dlfcn.h>
 
 #include "configManager.hpp"
-#include "libhv/include/hv/http_client.h"
 #include "log.hpp"
+#include "utils.hpp"
 
 parserManager::~parserManager() {
     // 关闭加载的所有动态链接库
@@ -22,6 +22,7 @@ parserManager::~parserManager() {
 }
 
 ParserFunc parserManager::getParserFunc(const std::string &type) {
+    LOG_DEBUG("Begin, type {}", type);
     auto iter = m_mParser.find(type);
     if (iter != m_mParser.end()) {
         return iter->second;
@@ -57,6 +58,7 @@ ParserFunc parserManager::getParserFunc(const std::string &type) {
 #define MAX_URL_LEN 255
 
 const KeyValueMap parserManager::parseOne(const std::string &domain) {
+    LOG_DEBUG("Begin, domain {}", domain);
     auto iter = m_mParseCache.find(domain);
     if (iter != m_mParseCache.end()) {
         // 找到返回缓存数据
@@ -66,6 +68,7 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
     auto &config = configManager::getInstance();
     auto vQueryServer = config.getQueryServer();
     for (auto &server : vQueryServer) {
+        LOG_DEBUG("{}", server->url);
         // 获取解析函数
         auto parser = getParserFunc(server->type);
         if (parser == nullptr) {
@@ -74,9 +77,12 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
             continue;
         }
 
-        LOG_DEBUG("{}", server->url);
-        // 请求
-        auto reqResult = getRequestResult(*server, domain);
+        // 发送网络请求，对结果进行解析
+        char url[MAX_URL_LEN + 1] = {0};
+        std::string format = server->url + server->param;
+        snprintf(url, MAX_URL_LEN, format.c_str(), domain.c_str());
+        auto reqResult = utils::getRequestResult(
+            url, server->requestType == "GET" ? HTTP_GET : HTTP_POST);
         if (reqResult == "") {
             LOG_WARN("reqResult is empty, url {}, type {}", server->url,
                      server->type);
@@ -87,7 +93,7 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
         // 获取结果
         auto ret = parser(server->result, reqResult, result);
         if (ret != 0) {
-            LOG_WARN("parse failed, reqResult {}", reqResult);
+            LOG_WARN("parse failed, ret {}, reqResult {}", ret, reqResult);
             continue;
         }
 
@@ -95,46 +101,4 @@ const KeyValueMap parserManager::parseOne(const std::string &domain) {
         return *m_mParseCache[domain];
     }
     return {};
-}
-
-std::string parserManager::getRequestResult(const QueryServer &queryServer,
-                                            const std::string &domain) {
-    HttpRequest req;
-    req.method = HTTP_GET;
-    char url[MAX_URL_LEN + 1] = {0};
-    string format = queryServer.url + queryServer.param;
-    snprintf(url, MAX_URL_LEN, format.c_str(), domain.c_str());
-    req.url = url;
-    LOG_DEBUG("url {}", req.url.c_str());
-    HttpResponse res;
-    auto ret = http_client_send(&req, &res);
-    string result = res.Dump(false, true);
-    if (ret != 0 || res.status_code != 200) {
-        LOG_DEBUG("{}", result);
-        LOG_WARN("* Failed, error {}, ret {}, status_code {}",
-                 http_client_strerror(ret), ret, res.status_code);
-        return "";
-    }
-    return result;
-}
-
-#include <iostream>
-
-void parserManager::printResult(const std::string &input,
-                                const KeyValueMap &result) {
-    if (result.size() == 0) {
-        std::cout << "Can't parse domain: " << input << std::endl;
-        return;
-    }
-    // 只有一个值就返回 域名: xxx
-    if (result.size() == 1) {
-        for (auto &item : result) {
-            std::cout << input << ": " << item.second << std::endl;
-        }
-        return;
-    }
-    // 有多个值就返回 key: xxx
-    for (auto &item : result) {
-        std::cout << item.first << ": " << item.second << std::endl;
-    }
 }

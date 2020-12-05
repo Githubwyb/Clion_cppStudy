@@ -10,33 +10,46 @@
 #include <fstream>
 #include <iostream>
 
-#include "iniReader/INIReader.h"
+#include "libhv/include/hv/iniparser.h"
+#include "libhv/include/hv/json.hpp"
 #include "log.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/istreamwrapper.h"
 #include "utils.hpp"
 
 using namespace std;
-using namespace rapidjson;
 
 int configManager::loadINIConf(const string &path) {
     if (m_confPath == "") {
         m_confPath = path;
     }
 
-    auto iniReader = INIReader(m_confPath);
-    auto ret = iniReader.ParseError();
+    auto iniReader = IniParser();
+    // auto iniReader = INIReader(m_confPath);
+    auto ret = iniReader.LoadFromFile(path.c_str());
     if (ret != 0) {
-        cout << "file " << m_confPath << " open failed, ret " << to_string(ret)
+        cout << "[Error] file " << m_confPath << " open failed, ret " << to_string(ret)
              << endl;
         return FILE_OPEN_ERROR;
     }
 
+    // 解析日志相关参数
+    m_logFilePath = iniReader.GetValue("log", "logPath");
+    if (m_logFilePath == "") {
+        m_logFilePath = utils::getProgramPath() + "/logs/";
+    }
+    if (m_logFilePath[0] != '/') {
+        // 不是绝对路径，拼接程序目录
+        m_logFilePath = utils::getProgramPath() + "/" + m_logFilePath;
+    }
+    m_logFileSize = iniReader.Get("log", "logFileSize", 5000);
+    m_logFileRotating = iniReader.Get("log", "logFileRotating", 3);
+    initLog();
+
     // 请求服务器配置路径，参数解析到此参数就不用global.ini中的参数
     if (m_serverConfPath == "") {
-        m_serverConfPath = iniReader.GetString(
-            "server", "confPath",
-            utils::getProgramPath() + "/config/server.json");
+        m_serverConfPath = iniReader.GetValue("server", "confPath");
+        if (m_serverConfPath == "") {
+            m_serverConfPath = utils::getProgramPath() + "/config/server.json";
+        }
         if (m_serverConfPath[0] != '/') {
             // 不是绝对路径，拼接程序目录
             m_serverConfPath = utils::getProgramPath() + "/" + m_serverConfPath;
@@ -45,31 +58,22 @@ int configManager::loadINIConf(const string &path) {
     // 解析服务器配置文件
     ret = parseServerConf(m_serverConfPath);
     if (ret != SUCCESS) {
-        cout << "file " << m_serverConfPath << " parse failed, ret "
+        cout << "[Error] file " << m_serverConfPath << " parse failed, ret "
              << to_string(ret) << endl;
         return ret;
     }
 
     // 解析库的路径，参数解析到此参数就不用global.ini中的参数
     if (m_parserLibPath == "") {
-        m_parserLibPath = iniReader.GetString(
-            "parser", "libPath", utils::getProgramPath() + "/parser/");
+        m_parserLibPath = iniReader.GetValue("parser", "libPath");
+        if (m_parserLibPath == "") {
+            m_parserLibPath = utils::getProgramPath() + "/parser/";
+        }
         if (m_parserLibPath[0] != '/') {
             // 不是绝对路径，拼接程序目录
             m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
         }
     }
-
-    // 解析日志相关参数
-    m_logFilePath = iniReader.GetString("log", "logPath",
-                                        utils::getProgramPath() + "/logs/");
-    if (m_logFilePath[0] != '/') {
-        // 不是绝对路径，拼接程序目录
-        m_logFilePath = utils::getProgramPath() + "/" + m_logFilePath;
-    }
-    m_logFileSize = iniReader.GetInteger("log", "logFileSize", 5000);
-    m_logFileRotating = iniReader.GetInteger("log", "logFileRotating", 3);
-    initLog();
 
     showConf();
     return SUCCESS;
@@ -83,8 +87,8 @@ void configManager::showConf() {
     printStr += "confPath:            '" + m_confPath + "'\n";
     printStr += "parserLibPath:       '" + m_parserLibPath + "'\n";
     printStr += "logFilePath:         '" + m_logFilePath + "'\n";
-    printStr += "logFileSize:         '" + to_string(m_logFileSize) + "'\n";
-    printStr += "logFileRotating:     '" + to_string(m_logFileRotating) + "'\n";
+    printStr += "logFileSize:         " + to_string(m_logFileSize) + "\n";
+    printStr += "logFileRotating:     " + to_string(m_logFileRotating) + "\n";
     printStr += "inputFilePath:       '" + m_inputFile + "'\n";
     printStr += "serverConfPath:      '" + m_serverConfPath + "'\n";
     // 服务器配置
@@ -112,67 +116,86 @@ void configManager::showConf() {
 }
 
 int configManager::parseServerConf(const string &path) {
+    LOG_DEBUG("Begin, path {}", path);
+    // 读取json文件
     ifstream ifs(path);
-    IStreamWrapper isw(ifs);
-    // 解析json文件
-    Document d;
-    d.ParseStream(isw);
-    if (d.HasParseError()) {
-        LOG_ERROR("ParseError {}", d.GetParseError());
+    nlohmann::json j;
+
+    // json文件解析
+    try {
+        ifs >> j;
+    } catch (...) {
+        LOG_ERROR("ParseError path {}", path);
+        return FILE_OPEN_ERROR;
+    }
+
+    if (!j.is_array()) {
+        LOG_ERROR("ParseError need json type array path {}", path);
         return FILE_OPEN_ERROR;
     }
 
     // 遍历获取服务器配置
-    for (Value::ConstMemberIterator itr = d.MemberBegin(); itr != d.MemberEnd();
-         itr++) {
-        auto key = itr->name.GetString();
-        LOG_DEBUG("server: {}", key);
-        if (!itr->value.IsObject()) {
-            LOG_WARN("key '{}' is not a object", key);
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        if (it.value().type() != nlohmann::detail::value_t::object) {
+            LOG_WARN("item {} is not a object, but {}", *it, it.value().type_name());
             continue;
         }
-        auto serverConf = itr->value.GetObject();
+        auto serverConf = it.value();
 
         // 将读取到的属性存到服务器配置中
         QueryServer queryServer;
         // 请求url
-        queryServer.url = key;
-        // 结果类型
-        if (!serverConf["type"].IsString()) {
-            LOG_WARN("server({}).type is not a string", key);
+        auto tmp = serverConf["url"];
+        if (!tmp.is_string()) {
+            LOG_WARN("item({}).url is not a string, but {}", *it,
+                     tmp.type_name());
             continue;
         }
-        queryServer.type = serverConf["type"].GetString();
+        queryServer.url = tmp.get<string>();
+
+        // 结果类型
+        tmp = serverConf["type"];
+        if (!tmp.is_string()) {
+            LOG_WARN("item({}).type is not a string, but {}", *it,
+                     tmp.type_name());
+            continue;
+        }
+        queryServer.type = tmp.get<string>();
 
         // 请求类型
-        if (!serverConf["requestType"].IsString()) {
-            LOG_WARN("server({}).requestType is not a string", key);
+        tmp = serverConf["requestType"];
+        if (!tmp.is_string()) {
+            LOG_WARN("item({}).requestType is not a string, but {}", *it,
+                     tmp.type_name());
             continue;
         }
-        queryServer.requestType = serverConf["requestType"].GetString();
+        queryServer.requestType = tmp.get<string>();
 
         // 请求参数结构
-        if (!serverConf["param"].IsString()) {
-            LOG_WARN("server({}).param is not a string", key);
+        tmp = serverConf["param"];
+        if (!tmp.is_string()) {
+            LOG_WARN("item({}).param is not a string, but {}", *it,
+                     tmp.type_name());
             continue;
         }
-        queryServer.param = serverConf["param"].GetString();
+        queryServer.param = tmp.get<string>();
 
         // 期望返回结果
-        if (!serverConf["result"].IsObject()) {
-            LOG_WARN("server({}).result is not a object", key);
+        tmp = serverConf["result"];
+        if (!tmp.is_object()) {
+            LOG_WARN("item({}).result is not a object, but {}", *it,
+                     tmp.type_name());
             continue;
         }
-        auto result = serverConf["result"].GetObject();
-        for (Value::ConstMemberIterator it = result.MemberBegin();
-             it != result.MemberEnd(); ++it) {
-            if (!it->value.IsString()) {
-                LOG_WARN("server({}).result.'{}' is not a string", key,
-                         it->name.GetString());
+        auto result = tmp;
+        for (auto itr = result.begin(); itr != result.end(); ++itr) {
+            if (!itr.value().is_string()) {
+                LOG_WARN("item({}).result.'{}' is not a string, but {}", *it,
+                         itr.value(), itr.value().type_name());
                 continue;
             }
 
-            queryServer.result[it->name.GetString()] = it->value.GetString();
+            queryServer.result[itr.key()] = itr.value();
         }
 
         // 将配置储存到内部变量
@@ -226,7 +249,7 @@ int configManager::getCmdLineParam(int argC, char *argV[]) {
 
     // 没参数输入
     if (m_inputFile == "" && argC == 0) {
-        cout << "Need input a domain" << endl;
+        cout << "[Error] Need input a domain" << endl;
         usage();
         return PARAM_PARSE_ERROR;
     }
@@ -234,7 +257,7 @@ int configManager::getCmdLineParam(int argC, char *argV[]) {
     m_vInput.clear();
     // 解析文件输入
     if (m_inputFile != "" && parseInputFile(m_inputFile) != SUCCESS) {
-        cout << "input file parse error, please check -f" << endl;
+        cout << "[Error] input file parse error, please check -f" << endl;
         usage();
         return PARAM_PARSE_ERROR;
     }
@@ -298,8 +321,9 @@ int configManager::parseInputFile(const std::string &path) {
 
 #include "spdlog/sinks/rotating_file_sink.h"
 void configManager::initLog(void) {
-    auto logger = spdlog::rotating_logger_mt(
-        "mylog", m_logFilePath + "dcq.log", m_logFileSize * 1024, m_logFileRotating);
+    auto logger =
+        spdlog::rotating_logger_mt("mylog", m_logFilePath + "dcq.log",
+                                   m_logFileSize * 1024, m_logFileRotating);
     spdlog::set_default_logger(logger);
     if (m_logDebug) {
         spdlog::set_level(

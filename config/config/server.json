@@ -1,6 +1,19 @@
-{
-
-    "http://apidata.chinaz.com/CallAPI/Domain": {
+[
+    {
+        "url": "http://icp.chinaz.com/home/info",
+        "type": "text",
+        "requestType": "GET",
+        "param": "?host=%s",
+        "result": {
+            "companyName": "<td.*>主办单位名称：</td>\\s+<td.*>(.*)</td>",
+            "companyType": "<td.*>主办单位性质：</td>\\s+<td.*>(.*)</td>",
+            "beianCode": "<td.*>备案/许可证号：</td>\\s+<td.*>(.*)</td>",
+            "webName": "<td.*>网站名称：</td>\\s+<td.*>(.*)</td>",
+            "verifyTime": "<td.*>审核通过时间：</td>\\s+<td.*>(.*)</td>"
+        }
+    },
+    {
+        "url": "http://apidata.chinaz.com/CallAPI/Domain",
         "type": "json",
         "requestType": "GET",
         "param": "?key=41e178fef26848bca2bc26b4c7c260db&domainName=%s",
@@ -13,19 +26,8 @@
             "verifyTime": "Result.VerifyTime"
         }
     },
-    "http://icp.chinaz.com/home/info": {
-        "type": "text",
-        "requestType": "GET",
-        "param": "?host=%s",
-        "result": {
-            "companyName": "<td.*>主办单位名称：</td>\\s+<td.*>(.*)</td>",
-            "companyType": "<td.*>主办单位性质：</td>\\s+<td.*>(.*)</td>",
-            "beianCode": "<td.*>备案/许可证号：</td>\\s+<td.*>(.*)</td>",
-            "webName": "<td.*>网站名称：</td>\\s+<td.*>(.*)</td>",
-            "verifyTime": "<td.*>审核通过时间：</td>\\s+<td.*>(.*)</td>"
-        }
-    },
-    "http://icp.chinaz.com": {
+    {
+        "url": "http://icp.chinaz.com",
         "type": "text",
         "requestType": "GET",
         "param": "/%s",
@@ -37,4 +39,4 @@
             "verifyTime": "<span>审核时间</span>\\s+<p>(.*)</p>"
         }
     }
-}
+]

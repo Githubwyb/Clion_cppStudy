@@ -12,13 +12,13 @@
 #include "configManager.hpp"
 #include "log.hpp"
 #include "parserManager.hpp"
+#include "outputManager.hpp"
 #include "utils.hpp"
 
 using namespace std;
 
 int main(int argC, char *argV[]) {
     (void)BugReportRegister("dcq", ".", nullptr, nullptr);
-
     auto &config = configManager::getInstance();
     // 解析命令行参数，将用命令行参数替换全局配置
     int ret = config.getCmdLineParam(argC, argV);
@@ -36,7 +36,7 @@ int main(int argC, char *argV[]) {
     // 解析域名
     for (auto &input : config.getInput()) {
         auto &result = parser.parseOne(input);
-        parser.printResult(input, result);
+        outputManager::getInstance().printResult(input, result);
     }
     return 0;
 }

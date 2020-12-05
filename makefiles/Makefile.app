@@ -83,7 +83,6 @@ gcov:
 
 test:
 	@if [ -f "./Makefile.test" ]; then \
-		make -f Makefile.test clean; \
 		make -f Makefile.test; \
 	else \
 		echo "dont exit Makefile.test, have no test"; \
