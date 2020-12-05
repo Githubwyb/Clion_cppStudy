@@ -22,8 +22,8 @@ LIB += -pthread -ldl threepart/libhv/lib/libhv.a -lcurl threepart/spdlog/build/l
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart  -I./threepart/spdlog/include
 
-CFLAGS += -DLINUX -g -Wall -Wshadow -std=c11
-CXXFLAGS += -DLINUX -g -Wall -Wshadow -std=c++14
+CFLAGS += -DLINUX -Wall -Wshadow -std=c11
+CXXFLAGS += -DLINUX -Wall -Wshadow -std=c++14
 LFLAGS +=
 
 

@@ -28,3 +28,22 @@ const string &utils::getProgramPath() {
     }
     return path;
 }
+
+#include "libhv/include/hv/http_client.h"
+
+string utils::getRequestResult(const string &url, http_method method) {
+    LOG_DEBUG("Begin, url {}", url);
+    HttpRequest req;
+    req.method = method;
+    req.url = url;
+    HttpResponse res;
+    auto ret = http_client_send(&req, &res);
+    string result = res.Dump(false, true);
+    if (ret != 0 || res.status_code != 200) {
+        LOG_DEBUG("{}", result);
+        LOG_WARN("* Failed, error {}, ret {}, status_code {}",
+                 http_client_strerror(ret), ret, res.status_code);
+        return "";
+    }
+    return result;
+}
