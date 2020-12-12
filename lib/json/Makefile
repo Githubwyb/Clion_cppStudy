@@ -23,8 +23,8 @@ LIB +=
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I../includes
 
-CFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c11
-CXXFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c++11
+CFLAGS += -O2 -DFCNTL -Wno-unused-function -std=c11
+CXXFLAGS += -O2 -DFCNTL -Wno-unused-function -std=c++11
 LFLAGS +=
 
 

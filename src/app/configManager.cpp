@@ -13,67 +13,64 @@
 #include "libhv/include/hv/iniparser.h"
 #include "libhv/include/hv/json.hpp"
 #include "log.hpp"
+#include "types.hpp"
 #include "utils.hpp"
 
 using namespace std;
+using namespace libdcq;
 
 int configManager::loadINIConf(const string &path) {
-    if (m_confPath == "") {
-        m_confPath = path;
-    }
-
+    m_confPath = path;
     auto iniReader = IniParser();
-    // auto iniReader = INIReader(m_confPath);
     auto ret = iniReader.LoadFromFile(path.c_str());
     if (ret != 0) {
-        cout << "[Error] file " << m_confPath << " open failed, ret " << to_string(ret)
-             << endl;
+        // 日志还未初始化
         return FILE_OPEN_ERROR;
     }
 
     // 解析日志相关参数
-    m_logFilePath = iniReader.GetValue("log", "logPath");
+    m_logFilePath = iniReader.GetValue("logPath", "log");
     if (m_logFilePath == "") {
-        m_logFilePath = utils::getProgramPath() + "/logs/";
+        m_logFilePath = DEFAULT_LOG_DIR;
     }
     if (m_logFilePath[0] != '/') {
         // 不是绝对路径，拼接程序目录
         m_logFilePath = utils::getProgramPath() + "/" + m_logFilePath;
     }
-    m_logFileSize = iniReader.Get("log", "logFileSize", 5000);
-    m_logFileRotating = iniReader.Get("log", "logFileRotating", 3);
+    m_logFileSize = iniReader.Get("logFileSize", "log", 5000);
+    m_logFileRotating = iniReader.Get("logFileRotating", "log", 3);
+    m_logDebug = iniReader.Get("logDebug", "log", false);
     initLog();
 
-    // 请求服务器配置路径，参数解析到此参数就不用global.ini中的参数
+    // 请求服务器配置路径
+    m_serverConfPath = iniReader.GetValue("confPath", "server");
     if (m_serverConfPath == "") {
-        m_serverConfPath = iniReader.GetValue("server", "confPath");
-        if (m_serverConfPath == "") {
-            m_serverConfPath = utils::getProgramPath() + "/config/server.json";
-        }
-        if (m_serverConfPath[0] != '/') {
-            // 不是绝对路径，拼接程序目录
-            m_serverConfPath = utils::getProgramPath() + "/" + m_serverConfPath;
-        }
+        m_serverConfPath = DEFAULT_SERVERCONF_PATH;
+    }
+    if (m_serverConfPath[0] != '/') {
+        // 不是绝对路径，拼接程序目录
+        m_serverConfPath = utils::getProgramPath() + "/" + m_serverConfPath;
     }
     // 解析服务器配置文件
     ret = parseServerConf(m_serverConfPath);
     if (ret != SUCCESS) {
-        cout << "[Error] file " << m_serverConfPath << " parse failed, ret "
-             << to_string(ret) << endl;
+        LOG_ERROR("Parse server conf failed ret {}, confPath {}", ret,
+                  m_serverConfPath);
         return ret;
     }
 
-    // 解析库的路径，参数解析到此参数就不用global.ini中的参数
+    // 解析库的路径
+    m_parserLibPath = iniReader.GetValue("libPath", "parser");
     if (m_parserLibPath == "") {
-        m_parserLibPath = iniReader.GetValue("parser", "libPath");
-        if (m_parserLibPath == "") {
-            m_parserLibPath = utils::getProgramPath() + "/parser/";
-        }
-        if (m_parserLibPath[0] != '/') {
-            // 不是绝对路径，拼接程序目录
-            m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
-        }
+        m_parserLibPath = DEFAULT_PARSER_DIR;
     }
+    if (m_parserLibPath[0] != '/') {
+        // 不是绝对路径，拼接程序目录
+        m_parserLibPath = utils::getProgramPath() + "/" + m_parserLibPath;
+    }
+
+    // 线程池数量
+    m_threadNum = iniReader.Get("threadNum", "performance", 5);
 
     showConf();
     return SUCCESS;
@@ -89,6 +86,7 @@ void configManager::showConf() {
     printStr += "logFilePath:         '" + m_logFilePath + "'\n";
     printStr += "logFileSize:         " + to_string(m_logFileSize) + "\n";
     printStr += "logFileRotating:     " + to_string(m_logFileRotating) + "\n";
+    printStr += "threadNum:           " + to_string(m_threadNum) + "\n";
     printStr += "inputFilePath:       '" + m_inputFile + "'\n";
     printStr += "serverConfPath:      '" + m_serverConfPath + "'\n";
     // 服务器配置
@@ -137,7 +135,8 @@ int configManager::parseServerConf(const string &path) {
     // 遍历获取服务器配置
     for (auto it = j.begin(); it != j.end(); ++it) {
         if (it.value().type() != nlohmann::detail::value_t::object) {
-            LOG_WARN("item {} is not a object, but {}", *it, it.value().type_name());
+            LOG_WARN("item {} is not a object, but {}", *it,
+                     it.value().type_name());
             continue;
         }
         auto serverConf = it.value();
@@ -205,88 +204,6 @@ int configManager::parseServerConf(const string &path) {
     return m_vQueryServer.size() == 0 ? SERVER_CONF_EMPTY : SUCCESS;
 }
 
-int configManager::getCmdLineParam(int argC, char *argV[]) {
-    char ch;
-    while ((ch = getopt(argC, argV, "dc:s:p:f:")) != EOF) {
-        switch (ch) {
-            case 'd':
-                // debug mode
-                m_logDebug = true;
-                break;
-
-            case 'c':
-                // global.ini
-                m_confPath = optarg;
-                break;
-
-            case 's':
-                // server.json
-                m_serverConfPath = optarg;
-                break;
-
-            case 'p':
-                // parserLibPath/
-                m_parserLibPath = optarg;
-                // 防止输入未加最后的/
-                if (*(m_parserLibPath.end() - 1) != '/') {
-                    m_parserLibPath += "/";
-                }
-                break;
-
-            case 'f':
-                // 输入文件
-                m_inputFile = optarg;
-                break;
-
-            default:
-                usage();
-                return PARAM_PARSE_ERROR;
-        }
-    }
-
-    argC -= optind;
-    argV += optind;
-
-    // 没参数输入
-    if (m_inputFile == "" && argC == 0) {
-        cout << "[Error] Need input a domain" << endl;
-        usage();
-        return PARAM_PARSE_ERROR;
-    }
-
-    m_vInput.clear();
-    // 解析文件输入
-    if (m_inputFile != "" && parseInputFile(m_inputFile) != SUCCESS) {
-        cout << "[Error] input file parse error, please check -f" << endl;
-        usage();
-        return PARAM_PARSE_ERROR;
-    }
-
-    // 命令行输入
-    for (int index = 0; index < argC; ++index) {
-        m_vInput.emplace_back(argV[index]);
-    }
-
-    return SUCCESS;
-}
-
-void configManager::usage(void) {
-    cout << "Usage: dcq [options...] <domain|-f file>" << endl
-         << "    -c <filePath> System config file, global.ini" << endl
-         << "                  default (program path)/global.ini" << endl
-         << "    -s <filePath> Server config to parse domain, server.json"
-         << endl
-         << "                  default parse from global.ini::server.confPath"
-         << endl
-         << "    -p <dirPath>  Parser so lib path, parserLibPath/" << endl
-         << "                  default parse from global.ini::parser.libPath"
-         << endl
-         << "                  use parserLibPath/lib(type).so to parse domain "
-            "which type defined in server.json"
-         << endl
-         << endl;
-}
-
 int configManager::parseInputFile(const std::string &path) {
     //读txt文件
     ifstream infile;             //定义文件变量
@@ -321,8 +238,14 @@ int configManager::parseInputFile(const std::string &path) {
 
 #include "spdlog/sinks/rotating_file_sink.h"
 void configManager::initLog(void) {
+    // 已经初始化过日志，就不会重复初始化
+    if (spdlog::get(LOGGER_NAME) != nullptr) {
+        LOG_DEBUG("Logger has been inited");
+        return;
+    }
+
     auto logger =
-        spdlog::rotating_logger_mt("mylog", m_logFilePath + "dcq.log",
+        spdlog::rotating_logger_mt(LOGGER_NAME, m_logFilePath + "dcq.log",
                                    m_logFileSize * 1024, m_logFileRotating);
     spdlog::set_default_logger(logger);
     if (m_logDebug) {

@@ -5,9 +5,9 @@ TYPE = test
 TARGET = $(OUTPUTDIR)/$(BINNAME)_test
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
-SRCDIR = ./app/ ./utils/ ./threepart/iniReader/ ./threepart/xtest/
+SRCDIR = ./threepart/xtest/
 # 排除的文件绝对路径，单测需要排掉
-EXCLUDE_SRC = ./app/main.cpp
+EXCLUDE_SRC =
 #编译中间文件路径，跟SRCDIR目录不用填，目录使用/结束
 OBJDIR =
 #生成目标文件TARGET，存放路径，跟makefile文件同目录不用填，目录使用/结束
@@ -19,13 +19,13 @@ INSTALL_TARGETDIR = $(APP_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += -pthread -ldl threepart/libhv/lib/libhv.a -lcurl threepart/spdlog/build/libspdlog.a
+LIB += threepart/spdlog/build/libspdlog.a -L$(OUTPUTDIR) -ldcq
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart  -I./threepart/spdlog/include
 
-CFLAGS += -DLINUX -Wall -Wshadow -std=c11
-CXXFLAGS += -DLINUX -Wall -Wshadow -std=c++14
+CFLAGS += -DLINUX -Wshadow -std=c11
+CXXFLAGS += -DLINUX -Wshadow -std=c++14
 LFLAGS +=
 
 

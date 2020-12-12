@@ -1,6 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAGS += -fPIC -Wall -Werror
+CXXFLAGS += -fPIC -Wall -Werror
 LFLAGS += -shared -fPIC
 
 # gcov
@@ -81,7 +82,6 @@ gcov:
 
 test:
 	@if [ -f "./Makefile.test" ]; then \
-		make -f Makefile.test clean; \
 		make -f Makefile.test; \
 	else \
 		echo "dont exit Makefile.test, have no test"; \

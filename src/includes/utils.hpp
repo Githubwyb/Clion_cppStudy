@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "common.hpp"
+// #include "common.hpp"
 
 #include "libhv/include/hv/httpdef.h"
 
@@ -19,6 +19,12 @@ class utils {
      * @return string 目录
      **/
     static const std::string &getProgramPath();
+
+    /**
+     * 切分文件名，将前面的斜杠去除
+     * @param fileName const char * 文件名
+     **/
+    static const char *splitFileName(const char *fileName);
 
     /**
      * 获取网络请求结果

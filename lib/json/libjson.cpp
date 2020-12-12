@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "parseBase.hpp"
 #include "json.hpp"
+#include "parseBase.hpp"
 
 DEFINE_CLASS(parserJson)
 DEFINE_FUNC(parserJson)
@@ -18,11 +18,11 @@ using namespace std;
 
 //字符串分割函数
 vector<string> split(string str, const string &pattern) {
-    string::size_type pos;
+    size_t pos;
     vector<string> result;
     str += pattern;  //扩展字符串以方便操作
-    int size = str.size();
-    for (int i = 0; i < size; i++) {
+    auto size = str.size();
+    for (size_t i = 0; i < size; i++) {
         pos = str.find(pattern, i);
         if (pos < size) {
             std::string s = str.substr(i, pos - i);
@@ -33,8 +33,8 @@ vector<string> split(string str, const string &pattern) {
     return result;
 }
 
-int parserJson::parse(const KeyValueMap &rules, string &input,
-                      KeyValueMap &result) {
+int parserJson::parse(const libdcq::KeyValueMap &rules, string &input,
+                      libdcq::KeyValueMap &result) {
     nlohmann::json j;
     // json文件解析
     try {
@@ -88,7 +88,8 @@ int parserJson::parse(const KeyValueMap &rules, string &input,
         }
 
         if (!iter.is_string()) {
-            cout << "key " << it->second << " in " << input << " is not string, " << it->first << endl;
+            cout << "key " << it->second << " in " << input
+                 << " is not string, " << it->first << endl;
             continue;
         }
 
@@ -98,4 +99,3 @@ int parserJson::parse(const KeyValueMap &rules, string &input,
 
     return 0;
 }
-

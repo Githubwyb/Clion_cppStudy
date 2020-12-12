@@ -10,17 +10,19 @@
 #include <string>
 #include <vector>
 
-#include "baseInstance.hpp"
-#include "common.hpp"
+// #include "baseInstance.hpp"
+#include "libdcqtype.hpp"
 
-class configManager : public BaseInstance<configManager> {
+namespace libdcq {
+
+class configManager {
    public:
     enum {
-        SUCCESS = 0,            // 成功
-        FAILED = -1,            // 统一失败返回
-        FILE_OPEN_ERROR = -2,   // 文件打开失败
-        SERVER_CONF_EMPTY = -3, // 没有服务器配置项
-        PARAM_PARSE_ERROR = -4  // 参数解析失败
+        SUCCESS = 0,             // 成功
+        FAILED = -1,             // 统一失败返回
+        FILE_OPEN_ERROR = -2,    // 文件打开失败
+        SERVER_CONF_EMPTY = -3,  // 没有服务器配置项
+        PARAM_PARSE_ERROR = -4   // 参数解析失败
     };
 
     /**
@@ -50,30 +52,30 @@ class configManager : public BaseInstance<configManager> {
     const std::string &getParserLibPath(void) { return m_parserLibPath; }
 
     /**
+     * @brief 获取线程池数量
+     *
+     * @return int 线程池数量
+     */
+    int getThreadNum(void) { return m_threadNum; }
+
+    /**
      * 获取输入的域名列表
      * @return const std::vector<std::string> & 输入的域名列表
      **/
     const std::vector<std::string> &getInput(void) { return m_vInput; }
 
-    /**
-     * 解析命令行参数
-     * @param argC int 命令行参数个数
-     * @param argv char *[] 命令行参数值
-     * @return int 错误码
-     **/
-    int getCmdLineParam(int argC, char *argv[]);
-
    private:
     std::string m_confPath;        // 配置路径
     std::string m_serverConfPath;  // 请求服务器配置文件路径
     std::vector<std::shared_ptr<QueryServer>> m_vQueryServer;
-    std::string m_parserLibPath;       // 解析库的路径
-    std::vector<std::string> m_vInput; // 输入的要解析的字段
-    std::string m_inputFile;           // 输入文件路径
-    std::string m_logFilePath;         // 日志输出路径
-    size_t m_logFileSize;              // 单个文件日志大小
-    size_t m_logFileRotating;          // 保留几个日志文件
-    bool m_logDebug = false;           // 是否开启调试
+    std::string m_parserLibPath;        // 解析库的路径
+    std::vector<std::string> m_vInput;  // 输入的要解析的字段
+    std::string m_inputFile;            // 输入文件路径
+    std::string m_logFilePath;          // 日志输出路径
+    size_t m_logFileSize;               // 单个文件日志大小
+    size_t m_logFileRotating;           // 保留几个日志文件
+    bool m_logDebug = false;            // 是否开启调试
+    int m_threadNum;                    // 线程池线程数量
 
     /**
      * 加载请求服务器配置
@@ -93,11 +95,6 @@ class configManager : public BaseInstance<configManager> {
      * 日志初始化
      **/
     void initLog(void);
-
-    /**
-     * 打印命令行使用说明
-     **/
-    void usage(void);
 };
-
+}  // namespace libdcq
 #endif /* CONFIG_MANAGER_HPP */

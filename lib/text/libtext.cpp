@@ -14,8 +14,8 @@ DEFINE_FUNC(parserText)
 
 using namespace std;
 
-int parserText::parse(const KeyValueMap &rules, string &input,
-                      KeyValueMap &result) {
+int parserText::parse(const libdcq::KeyValueMap &rules, string &input,
+                      libdcq::KeyValueMap &result) {
     result.clear();
     for (auto it = rules.begin(); it != rules.end(); ++it) {
         // 正则匹配字段，放到result里面

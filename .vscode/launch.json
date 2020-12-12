@@ -8,11 +8,16 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dcq",
+            "program": "${workspaceFolder}/build/dcq_test",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
+            "cwd": "${workspaceFolder}/src",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/mnt/e/work/github_files/Clion_cppStudy/build/"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

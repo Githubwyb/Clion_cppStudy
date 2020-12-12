@@ -9,8 +9,9 @@
 #include <string>
 
 #include "baseInstance.hpp"
-#include "common.hpp"
+#include "libdcq.hpp"
 
+namespace libdcq {
 class outputManager : public BaseInstance<outputManager> {
    public:
     /**
@@ -20,5 +21,6 @@ class outputManager : public BaseInstance<outputManager> {
      **/
     void printResult(const std::string &domain, const KeyValueMap &result);
 };
+}
 
 #endif /* OUTPUT_MANAGER_HPP */

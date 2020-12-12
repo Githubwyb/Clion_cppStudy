@@ -9,6 +9,7 @@
 
 #include <libgen.h>
 #include <unistd.h>
+#include <iostream>
 
 using namespace std;
 
@@ -24,9 +25,15 @@ const string &utils::getProgramPath() {
         // 取路径
         dirname(programPath);
         path = programPath;
-        LOG_DEBUG("Get path %s", path.c_str());
+        LOG_DEBUG("Get path {}", path);
     }
     return path;
+}
+
+const char *utils::splitFileName(const char *fileName) {
+    const char *pChar = fileName;
+    pChar = (strrchr(pChar, '/') ? strrchr(pChar, '/') + 1 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
+    return pChar;
 }
 
 #include "libhv/include/hv/http_client.h"

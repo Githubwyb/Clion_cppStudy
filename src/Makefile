@@ -1,8 +1,8 @@
 #============Makefile==========
 #模块类型，lib库
-TYPE = app
+TYPE = so
 #要编译的目标
-TARGET = $(OUTPUTDIR)/$(BINNAME)
+TARGET = $(OUTPUTDIR)/lib$(BINNAME).$(TYPE)
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
 SRCDIR = ./app/ ./utils/ ./threepart/iniReader/
@@ -22,8 +22,8 @@ LIB += -pthread -ldl threepart/libhv/lib/libhv.a -lcurl threepart/spdlog/build/l
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart  -I./threepart/spdlog/include
 
-CFLAGS += -DLINUX -Wall -Wshadow -std=c11
-CXXFLAGS += -DLINUX -Wall -Wshadow -std=c++14
+CFLAGS += -DLINUX -Wshadow -std=c11
+CXXFLAGS += -DLINUX -Wshadow -std=c++11 -fvisibility=hidden
 LFLAGS +=
 
 

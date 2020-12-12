@@ -63,7 +63,8 @@
         "list": "cpp",
         "unordered_set": "cpp",
         "iomanip": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "variant": "cpp"
     },
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/src/includes"

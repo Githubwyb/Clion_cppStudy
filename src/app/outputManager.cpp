@@ -11,6 +11,7 @@
 #include "log.hpp"
 
 using namespace std;
+using namespace libdcq;
 
 void outputManager::printResult(const string &input,
                                 const KeyValueMap &result) {
