@@ -3,6 +3,7 @@
 !/envrc
 !/build.sh
 !/.vscode
+!/doxygen.conf
 
 # makefiles
 !/makefiles/
