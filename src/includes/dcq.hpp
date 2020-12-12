@@ -53,6 +53,15 @@ class dcqReal {
     ERROR_CODE parseOne(const std::string &, KeyValueMap &);
 
     /**
+     * @brief 异步解析一个域名
+     *
+     * @param domain const std::string & 要解析的域名
+     * @param result KeyValueMap & 要解析的域名
+     * @return std::future<ERROR_CODE> 错误码，错误信息从getErrorMsg获取
+     */
+    std::future<ERROR_CODE> asynParseOne(const std::string &, KeyValueMap &);
+
+    /**
      * @brief 批量解析域名
      *
      * @param vDomain const std::vector<std::string> 要解析的域名列表
@@ -60,14 +69,25 @@ class dcqReal {
      * @return int 解析成功的数量
      */
     int parseBatch(const std::vector<std::string> &,
-                          std::vector<std::shared_ptr<KeyValueMap>> &);
+                   std::vector<std::shared_ptr<KeyValueMap>> &);
+
+    /**
+     * @brief 异步批量解析域名
+     *
+     * @param vDomain const std::vector<std::string> 要解析的域名列表
+     * @param vResult std::vector<std::shared_ptr<KeyValueMap>> & 返回的数据
+     * @return std::vector<std::future<ERROR_CODE>> 解析错误码
+     */
+    std::vector<std::future<ERROR_CODE>> asynParseBatch(
+        const std::vector<std::string> &,
+        std::vector<std::shared_ptr<KeyValueMap>> &);
 
    private:
-    std::stack<std::string> m_errMsg;         // 错误信息栈
-    std::atomic<bool> m_inited;               // 是否初始化
-    std::mutex m_lock;                        // 锁变量
-    std::shared_ptr<configManager> m_conf;    // 配置管理指针
-    std::shared_ptr<parserManager> m_parser;  // 解析器管理指针
+    std::stack<std::string> m_errMsg;          // 错误信息栈
+    std::atomic<bool> m_inited;                // 是否初始化
+    std::mutex m_lock;                         // 锁变量
+    std::shared_ptr<configManager> m_conf;     // 配置管理指针
+    std::shared_ptr<parserManager> m_parser;   // 解析器管理指针
     std::shared_ptr<parserPool> m_parserPool;  // 解析器线程池指针
     std::map<std::string, std::shared_ptr<KeyValueMap>>
         m_mParseCache;  // 域名解析缓存
@@ -87,7 +107,8 @@ class dcqReal {
      * @param result KeyValueMap & 结果储存的map
      * @return ERROR_CODE 错误码，错误信息从getErrorMsg获取
      */
-    static ERROR_CODE run(dcqReal *p, const std::string &domain, KeyValueMap &result);
+    static ERROR_CODE run(dcqReal *p, const std::string &domain,
+                          KeyValueMap *result);
 };
 
 }  // namespace libdcq

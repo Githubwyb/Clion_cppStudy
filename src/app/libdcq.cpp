@@ -23,7 +23,18 @@ ERROR_CODE dcq::parseOne(const string &domain, KeyValueMap &result) {
     return m_pDcq->parseOne(domain, result);
 }
 
+std::future<ERROR_CODE> dcq::asynParseOne(const std::string &domain,
+                                          KeyValueMap &result) {
+    return m_pDcq->asynParseOne(domain, result);
+}
+
 int dcq::parseBatch(const std::vector<std::string> &vDomain,
-                           std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
+                    std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
     return m_pDcq->parseBatch(vDomain, vResult);
+}
+
+std::vector<std::future<ERROR_CODE>> dcq::asynParseBatch(
+    const std::vector<std::string> &vDomain,
+    std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
+    return m_pDcq->asynParseBatch(vDomain, vResult);
 }

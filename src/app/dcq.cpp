@@ -149,9 +149,10 @@ ERROR_CODE dcqReal::parseOne(const std::string &domain, KeyValueMap &result) {
     return FAILED;
 }
 
-// 任务函数，封装一层，非静态成员函数无法当做任务函数
-ERROR_CODE dcqReal::run(dcqReal *p, const std::string &domain, KeyValueMap &result) {
-    return p->parseOne(domain, result);
+// 任务函数，封装一层，非静态成员函数无法当做任务函数，并且结果使用指针传递，不能用引用
+ERROR_CODE dcqReal::run(dcqReal *p, const std::string &domain,
+                        KeyValueMap *result) {
+    return p->parseOne(domain, *result);
 }
 
 int dcqReal::parseBatch(const std::vector<std::string> &vDomain,
@@ -159,21 +160,11 @@ int dcqReal::parseBatch(const std::vector<std::string> &vDomain,
     vResult.clear();
 
     // 定义返回值
-    vector<future<ERROR_CODE>> ret;
-
-    for (auto &item : vDomain) {
-        // 外部申请结果内存
-        auto pResult = make_shared<KeyValueMap>();
-        // 插入任务函数
-        ret.emplace_back(m_parserPool->commit(run, this, item, *pResult));
-        // 仅仅放入指针，具体指针指向的内存改动，由任务函数完成
-        vResult.emplace_back(pResult);
-    }
+    auto ret = asynParseBatch(vDomain, vResult);
 
     int count = 0;
     for (size_t i = 0; i < vDomain.size(); ++i) {
         // 等待结果返回
-        ret[i].wait();
         if (ret[i].get() == SUCCESS) {
             count++;
         } else {
@@ -182,6 +173,27 @@ int dcqReal::parseBatch(const std::vector<std::string> &vDomain,
         }
     }
     return count;
+}
+
+std::future<ERROR_CODE> dcqReal::asynParseOne(const std::string &domain,
+                                              KeyValueMap &result) {
+    return m_parserPool->commit(run, this, domain, &result);
+}
+
+std::vector<std::future<ERROR_CODE>> dcqReal::asynParseBatch(
+    const std::vector<std::string> &vDomain,
+    std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
+    // 定义返回值
+    vector<future<ERROR_CODE>> vRet;
+    for (auto &item : vDomain) {
+        // 外部申请结果内存
+        auto pResult = make_shared<KeyValueMap>();
+        // 插入任务函数
+        vRet.emplace_back(m_parserPool->commit(run, this, item, pResult.get()));
+        // 仅仅放入指针，具体指针指向的内存改动，由任务函数完成
+        vResult.emplace_back(pResult);
+    }
+    return vRet;
 }
 
 #include <stdarg.h>

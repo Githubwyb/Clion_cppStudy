@@ -12,6 +12,7 @@
 #ifndef LIBDCQ_HPP
 #define LIBDCQ_HPP
 
+#include <future>
 #include <memory>
 #include <vector>
 
@@ -51,6 +52,16 @@ class dcq {
     LIBDCQ_API ERROR_CODE parseOne(const std::string &, KeyValueMap &);
 
     /**
+     * @brief 异步解析一个域名
+     *
+     * @param domain const std::string & 要解析的域名
+     * @param result KeyValueMap & 要解析的域名
+     * @return std::future<ERROR_CODE> 错误码，错误信息从getErrorMsg获取
+     */
+    LIBDCQ_API std::future<ERROR_CODE> asynParseOne(const std::string &,
+                                                    KeyValueMap &);
+
+    /**
      * @brief 批量解析域名
      *
      * @param vDomain const std::vector<std::string> 要解析的域名列表
@@ -58,7 +69,18 @@ class dcq {
      * @return int 解析成功的数量
      */
     LIBDCQ_API int parseBatch(const std::vector<std::string> &,
-               std::vector<std::shared_ptr<KeyValueMap>> &);
+                              std::vector<std::shared_ptr<KeyValueMap>> &);
+
+    /**
+     * @brief 异步批量解析域名
+     *
+     * @param vDomain const std::vector<std::string> 要解析的域名列表
+     * @param vResult std::vector<std::shared_ptr<KeyValueMap>> & 返回的数据
+     * @return std::vector<std::future<ERROR_CODE>> 解析错误码
+     */
+    LIBDCQ_API std::vector<std::future<ERROR_CODE>> asynParseBatch(
+        const std::vector<std::string> &,
+        std::vector<std::shared_ptr<KeyValueMap>> &);
 
    private:
     // 此类为代理类，这里定义真实类
