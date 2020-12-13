@@ -50,14 +50,14 @@ class libdcq::parserPool : public threadPool {
 };
 
 ERROR_CODE dcqReal::init(const string &confPath) {
-    if (!m_inited) {
+    if (m_inited) {
         LOG_INFO("lib has been inited");
         return SUCCESS;
     }
     auto retCode = SUCCESS;
     do {
         unique_lock<mutex> lock(m_lock);
-        if (!m_inited) {
+        if (m_inited) {
             LOG_INFO("lib has been inited");
             break;
         }
@@ -94,8 +94,14 @@ ERROR_CODE dcqReal::init(const string &confPath) {
 
 #define MAX_URL_LEN 255
 
-ERROR_CODE dcqReal::parseOne(const std::string &domain, KeyValueMap &result) {
+ERROR_CODE dcqReal::parseOne(const string &domain, KeyValueMap &result) {
     LOG_DEBUG("Begin, domain {}", domain);
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        return FAILED_UNINITED;
+    }
     {
         // 缓存读写要加锁
         unique_lock<mutex> lock(m_lock);
@@ -122,7 +128,7 @@ ERROR_CODE dcqReal::parseOne(const std::string &domain, KeyValueMap &result) {
 
         // 发送网络请求，对结果进行解析
         char url[MAX_URL_LEN + 1] = {0};
-        std::string format = server->url + server->param;
+        string format = server->url + server->param;
         snprintf(url, MAX_URL_LEN, format.c_str(), domain.c_str());
         auto reqResult = utils::getRequestResult(
             url, server->requestType == "GET" ? HTTP_GET : HTTP_POST);
@@ -142,7 +148,7 @@ ERROR_CODE dcqReal::parseOne(const std::string &domain, KeyValueMap &result) {
         {
             // 缓存读写要加锁
             unique_lock<mutex> lock(m_lock);
-            m_mParseCache[domain] = std::make_shared<KeyValueMap>(result);
+            m_mParseCache[domain] = make_shared<KeyValueMap>(result);
         }
         return SUCCESS;
     }
@@ -150,13 +156,20 @@ ERROR_CODE dcqReal::parseOne(const std::string &domain, KeyValueMap &result) {
 }
 
 // 任务函数，封装一层，非静态成员函数无法当做任务函数，并且结果使用指针传递，不能用引用
-ERROR_CODE dcqReal::run(dcqReal *p, const std::string &domain,
-                        KeyValueMap *result) {
+ERROR_CODE dcqReal::run(dcqReal *p, const string &domain, KeyValueMap *result) {
     return p->parseOne(domain, *result);
 }
 
-int dcqReal::parseBatch(const std::vector<std::string> &vDomain,
-                        std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
+int dcqReal::parseBatch(const vector<string> &vDomain,
+                        vector<shared_ptr<KeyValueMap>> &vResult) {
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        vResult = vector<shared_ptr<KeyValueMap>>(vDomain.size(),
+                                                  make_shared<KeyValueMap>());
+        return 0;
+    }
     vResult.clear();
 
     // 定义返回值
@@ -175,16 +188,34 @@ int dcqReal::parseBatch(const std::vector<std::string> &vDomain,
     return count;
 }
 
-std::future<ERROR_CODE> dcqReal::asynParseOne(const std::string &domain,
-                                              KeyValueMap &result) {
+future<ERROR_CODE> dcqReal::asynParseOne(const string &domain,
+                                         KeyValueMap &result) {
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        return async([] { return FAILED_UNINITED; });
+    }
     return m_parserPool->commit(run, this, domain, &result);
 }
 
-std::vector<std::future<ERROR_CODE>> dcqReal::asynParseBatch(
-    const std::vector<std::string> &vDomain,
-    std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
+vector<future<ERROR_CODE>> dcqReal::asynParseBatch(
+
+    const vector<string> &vDomain, vector<shared_ptr<KeyValueMap>> &vResult) {
+    vResult.clear();
     // 定义返回值
     vector<future<ERROR_CODE>> vRet;
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        for (size_t i = 0; i < vDomain.size(); ++i) {
+            vRet.emplace_back(async([] { return FAILED_UNINITED; }));
+            vResult.emplace_back(make_shared<KeyValueMap>());
+        }
+        return vRet;
+    }
+
     for (auto &item : vDomain) {
         // 外部申请结果内存
         auto pResult = make_shared<KeyValueMap>();

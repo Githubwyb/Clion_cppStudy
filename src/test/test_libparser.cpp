@@ -59,8 +59,8 @@ TEST(test, batch) {
 #include <sys/time.h>
 
 suseconds_t getIntevel(struct timeval &startTime, struct timeval &endTime) {
-    return ((endTime.tv_sec - startTime.tv_sec) * 1000000 +
-                 endTime.tv_usec - startTime.tv_usec);
+    return ((endTime.tv_sec - startTime.tv_sec) * 1000000 + endTime.tv_usec -
+            startTime.tv_usec);
 }
 
 // 异步单个场景测试
@@ -115,6 +115,30 @@ TEST(test, asyn_batch) {
     for (size_t i = 0; i < vDomain.size(); i++) {
         EXPECT_EQ(SUCCESS, vRet[i].get());
         EXPECT_TRUE(vResult[i]->size() > 0);
+    }
+}
+
+// 未初始化场景测试
+TEST(test, uninited) {
+    // Create and return a shared_ptr to a multithreaded console logger.
+    auto logger = getConsoleLogger();
+    auto testDcq = dcq();
+
+    // 单个
+    KeyValueMap result;
+    EXPECT_EQ(FAILED_UNINITED, testDcq.parseOne("www.baidu.com", result));
+    // 批量
+    vector<shared_ptr<KeyValueMap>> vResult;
+    vector<string> vDomain = {"baidu.com", "sina.com", "baidu.com",
+                              "hustwyb.cn"};
+    EXPECT_EQ(0, testDcq.parseBatch(vDomain, vResult));
+    // 异步单个
+    EXPECT_EQ(FAILED_UNINITED,
+              testDcq.asynParseOne("www.baidu.com", result).get());
+    // 异步批量
+    auto vRet = testDcq.asynParseBatch(vDomain, vResult);
+    for (size_t i = 0; i < vDomain.size(); i++) {
+        EXPECT_EQ(FAILED_UNINITED, vRet[i].get());
     }
 }
 

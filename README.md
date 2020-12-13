@@ -20,6 +20,7 @@ bash build.sh
 ```shell
 # 运行单测
 source envrc
+export LD_LIBRARY_PATH="$(pwd)/build"
 cd src
 make test
 ```

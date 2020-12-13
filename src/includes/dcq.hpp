@@ -27,7 +27,7 @@ namespace libdcq {
 class parserPool;
 class dcqReal {
    public:
-    dcqReal() : m_inited(true) {}
+    dcqReal() : m_inited(false) {}
 
     /**
      * @brief 初识化dcq

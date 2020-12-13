@@ -4,8 +4,8 @@ TYPE = test
 #要编译的目标
 TARGET = $(OUTPUTDIR)/$(BINNAME)_test
 
-#源文件路径，跟makefile文件同目录不用填，目录使用/结束
-SRCDIR = ./threepart/xtest/
+#源文件路径，跟makefile文件同目录不用填，目录使用/结束，test目录会自动加上，这里不用写
+SRCDIR = ./test/xtest/
 # 排除的文件绝对路径，单测需要排掉
 EXCLUDE_SRC =
 #编译中间文件路径，跟SRCDIR目录不用填，目录使用/结束

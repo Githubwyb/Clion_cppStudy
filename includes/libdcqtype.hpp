@@ -40,7 +40,8 @@ enum ERROR_CODE {
     SUCCESS = 0,  // 成功
     FAILED,       // 一般失败
     // 配置错误码
-    FAILED_INI_PARSE,  // ini配置文件解析失败
+    FAILED_INI_PARSE,   // ini配置文件解析失败
+    FAILED_UNINITED,  // 未初始化
     // 解析器错误码
     FAILED_NO_PARSER,  // 没有parser解析成功
     FAILED_SO_OPEN,    // so库打开失败
