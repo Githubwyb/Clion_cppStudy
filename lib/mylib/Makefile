@@ -7,7 +7,7 @@ MODULE = $(OUTPUTLIBDIR)/libmylib
 TARGET = $(MODULE).$(TYPE)
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
-SRCDIR =
+SRCDIR = ./ ../common
 #编译中间文件路径，跟SRCDIR目录不用填，目录使用/结束
 OBJDIR =
 #生成目标文件TARGET，存放路径，跟makefile文件同目录不用填，目录使用/结束
@@ -23,8 +23,8 @@ LIB +=
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I../includes
 
-CFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c11
-CXXFLAGS += -O2 -fPIC -DFCNTL -Wno-unused-function -std=c++11
+CFLAGS += -O2 -Wno-unused-function -std=c11 -fvisibility=hidden
+CXXFLAGS += -O2 -Wno-unused-function -std=c++11 -fvisibility=hidden
 LFLAGS +=
 
 

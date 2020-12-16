@@ -44,7 +44,6 @@ void main() {
 using Task = std::function<void(void)>;
 class threadPool {
    private:
-    std::vector<std::thread> m_pool;   //线程池
     std::atomic<int> m_idleThreadNum;  //空闲线程数量
     std::atomic<bool> m_stoped;        //是否停止线程
     std::mutex m_lock;                 //线程池锁
@@ -56,6 +55,7 @@ class threadPool {
     void run();
 
    public:
+    std::vector<std::thread> m_pool;   //线程池
     //构造函数
     threadPool() : m_stoped(true) {}
     ~threadPool();
