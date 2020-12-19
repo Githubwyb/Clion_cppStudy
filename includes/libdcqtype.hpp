@@ -36,6 +36,9 @@ using QueryServer = struct QueryServer;
 
 using ParserFunc = int (*)(const KeyValueMap &, std::string &, KeyValueMap &);
 
+// 定义输出函数，外部可自制
+using OutputFunc = void (*)(const std::string &, KeyValueMap &);
+
 enum ERROR_CODE {
     SUCCESS = 0,  // 成功
     FAILED,       // 一般失败
@@ -54,6 +57,11 @@ enum ERROR_CODE {
 #define DEFAULT_SERVERCONF_PATH "/etc/libdcq/config/server.json"
 #define DEFAULT_PARSER_DIR "/etc/libdcq/parser/"
 #define DEFAULT_LOG_DIR "/var/log/libdcq/"
+
+// 线程最大数量
+#define MAX_THREAD_NUM 50
+// 线程最小数量
+#define MIN_THREAD_NUM 1
 
 }  // namespace libdcq
 

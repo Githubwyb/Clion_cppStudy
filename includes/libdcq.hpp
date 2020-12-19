@@ -22,7 +22,8 @@ namespace libdcq {
 
 // 真实类
 class dcqReal;
-// 代理类
+// 代理类，只暴露几个供外部调用的接口
+// 使用LIBDCQ_API只显示接口标签，其余隐藏，防止接口冲突
 class dcq {
    public:
     LIBDCQ_API dcq();
@@ -55,11 +56,21 @@ class dcq {
      * @brief 异步解析一个域名
      *
      * @param domain const std::string & 要解析的域名
-     * @param result KeyValueMap & 要解析的域名
+     * @param result KeyValueMap & 结果储存位置
      * @return std::future<ERROR_CODE> 错误码，错误信息从getErrorMsg获取
      */
     LIBDCQ_API std::future<ERROR_CODE> asynParseOne(const std::string &,
                                                     KeyValueMap &);
+
+    /**
+     * @brief 异步解析一个域名，带回调函数
+     *
+     * @param domain const std::string & 要解析的域名
+     * @param callback OutputFunc 回调函数
+     * @return std::future<ERROR_CODE> 错误码，错误信息从getErrorMsg获取
+     */
+    LIBDCQ_API std::future<ERROR_CODE> asynParseOneCb(const std::string &domain,
+                                                      OutputFunc callback);
 
     /**
      * @brief 批量解析域名
@@ -81,6 +92,16 @@ class dcq {
     LIBDCQ_API std::vector<std::future<ERROR_CODE>> asynParseBatch(
         const std::vector<std::string> &,
         std::vector<std::shared_ptr<KeyValueMap>> &);
+
+    /**
+     * @brief 异步批量解析域名
+     *
+     * @param vDomain const std::vector<std::string> 要解析的域名列表
+     * @param callback OutputFunc 回调函数
+     * @return std::vector<std::future<ERROR_CODE>> 解析错误码
+     */
+    LIBDCQ_API std::vector<std::future<ERROR_CODE>> asynParseBatchCb(
+        const std::vector<std::string> &vDomain, OutputFunc callback);
 
    private:
     // 此类为代理类，这里定义真实类
