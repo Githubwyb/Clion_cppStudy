@@ -28,6 +28,11 @@ std::future<ERROR_CODE> dcq::asynParseOne(const std::string &domain,
     return m_pDcq->asynParseOne(domain, result);
 }
 
+std::future<ERROR_CODE> dcq::asynParseOneCb(const std::string &domain,
+                                            OutputFunc callback) {
+    return m_pDcq->asynParseOneCb(domain, callback);
+}
+
 int dcq::parseBatch(const std::vector<std::string> &vDomain,
                     std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
     return m_pDcq->parseBatch(vDomain, vResult);
@@ -37,4 +42,9 @@ std::vector<std::future<ERROR_CODE>> dcq::asynParseBatch(
     const std::vector<std::string> &vDomain,
     std::vector<std::shared_ptr<KeyValueMap>> &vResult) {
     return m_pDcq->asynParseBatch(vDomain, vResult);
+}
+
+std::vector<std::future<ERROR_CODE>> dcq::asynParseBatchCb(
+    const std::vector<std::string> &vDomain, OutputFunc callback) {
+    return m_pDcq->asynParseBatchCb(vDomain, callback);
 }

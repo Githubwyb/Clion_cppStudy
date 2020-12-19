@@ -19,10 +19,10 @@ INSTALL_TARGETDIR = $(APP_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += threepart/spdlog/build/libspdlog.a -L$(OUTPUTDIR) -ldcq
+LIB += -L$(OUTPUTDIR) -ldcq
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
-INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart  -I./threepart/spdlog/include
+INCLUDE += -I$(PREFIX_INC)
 
 CFLAGS += -DLINUX -Wshadow -std=c11
 CXXFLAGS += -DLINUX -Wshadow -std=c++14

@@ -71,6 +71,12 @@ int configManager::loadINIConf(const string &path) {
 
     // 线程池数量
     m_threadNum = iniReader.Get("threadNum", "performance", 5);
+    // 线程数最小是1
+    if (m_threadNum < MIN_THREAD_NUM || m_threadNum > MAX_THREAD_NUM) {
+        LOG_ERROR("thread num must be in [%d, %d], but %d", MIN_THREAD_NUM,
+                  MAX_THREAD_NUM, m_threadNum);
+        return CONFIG_PARSE_ERROR;
+    }
 
     showConf();
     return SUCCESS;
@@ -249,11 +255,11 @@ void configManager::initLog(void) {
                                    m_logFileSize * 1024, m_logFileRotating);
     spdlog::set_default_logger(logger);
     if (m_logDebug) {
-        spdlog::set_level(
-            spdlog::level::debug);  // Set global log level to debug
-        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L][%@ %!] %v");
+        spdlog::set_level(spdlog::level::debug);
+        // debug模式下展示 [文件:行数 函数]，info模式下不展示
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%@ %!] %v");
     } else {
-        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P][%L] %v");
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L] %v");
     }
     LOG_INFO("log init, level {}", spdlog::get_level());
 }

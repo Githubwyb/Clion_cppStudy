@@ -3,10 +3,10 @@
 //
 
 #include "threadPool.hpp"
+
 #include "log.hpp"
 
 using namespace std;
-
 
 threadPool::~threadPool() {
     m_stoped = true;
@@ -18,8 +18,7 @@ threadPool::~threadPool() {
 
 void threadPool::init(int threadNum, string name) {
     if (!m_stoped) {
-        LOG_INFO("%s has been started, thread num %d", m_poolName.c_str(),
-                 m_threadNum);
+        LOG_INFO("{} has been started, thread num {}", m_poolName, m_threadNum);
         return;
     }
 
@@ -38,7 +37,7 @@ void threadPool::init(int threadNum, string name) {
         m_threadNum = threadNum;
         m_poolName = name;
     }
-    LOG_INFO("%s start thread num %d", m_poolName.c_str(), m_threadNum);
+    LOG_INFO("{} start thread num {}", m_poolName, m_threadNum);
 }
 
 void threadPool::run() {

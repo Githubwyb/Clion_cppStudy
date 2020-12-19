@@ -22,7 +22,8 @@ class configManager {
         FAILED = -1,             // 统一失败返回
         FILE_OPEN_ERROR = -2,    // 文件打开失败
         SERVER_CONF_EMPTY = -3,  // 没有服务器配置项
-        PARAM_PARSE_ERROR = -4   // 参数解析失败
+        PARAM_PARSE_ERROR = -4,  // 参数解析失败
+        CONFIG_PARSE_ERROR = -5  // 配置文件解析失败
     };
 
     /**

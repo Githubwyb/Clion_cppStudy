@@ -157,7 +157,21 @@ ERROR_CODE dcqReal::parseOne(const string &domain, KeyValueMap &result) {
 
 // 任务函数，封装一层，非静态成员函数无法当做任务函数，并且结果使用指针传递，不能用引用
 ERROR_CODE dcqReal::run(dcqReal *p, const string &domain, KeyValueMap *result) {
+    LOG_DEBUG("Begin, domain {}", domain);
     return p->parseOne(domain, *result);
+}
+
+ERROR_CODE dcqReal::runCb(dcqReal *p, const std::string &domain,
+                          OutputFunc callback) {
+    LOG_DEBUG("Begin, domain {}", domain);
+    KeyValueMap result;
+    auto ret = p->parseOne(domain, result);
+    LOG_INFO("run(cb) parseOne ret {}", ret);
+    if (ret == SUCCESS && callback) {
+        LOG_DEBUG("Call callback");
+        callback(domain, result);
+    }
+    return ret;
 }
 
 int dcqReal::parseBatch(const vector<string> &vDomain,
@@ -172,7 +186,7 @@ int dcqReal::parseBatch(const vector<string> &vDomain,
     }
     vResult.clear();
 
-    // 定义返回值
+    // 定义返回值，使用线程池跑解析，加快解析速度
     auto ret = asynParseBatch(vDomain, vResult);
 
     int count = 0;
@@ -199,8 +213,18 @@ future<ERROR_CODE> dcqReal::asynParseOne(const string &domain,
     return m_parserPool->commit(run, this, domain, &result);
 }
 
-vector<future<ERROR_CODE>> dcqReal::asynParseBatch(
+std::future<ERROR_CODE> dcqReal::asynParseOneCb(const std::string &domain,
+                                                OutputFunc callback) {
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        return async([] { return FAILED_UNINITED; });
+    }
+    return m_parserPool->commit(runCb, this, domain, callback);
+}
 
+vector<future<ERROR_CODE>> dcqReal::asynParseBatch(
     const vector<string> &vDomain, vector<shared_ptr<KeyValueMap>> &vResult) {
     vResult.clear();
     // 定义返回值
@@ -220,9 +244,30 @@ vector<future<ERROR_CODE>> dcqReal::asynParseBatch(
         // 外部申请结果内存
         auto pResult = make_shared<KeyValueMap>();
         // 插入任务函数
-        vRet.emplace_back(m_parserPool->commit(run, this, item, pResult.get()));
+        vRet.emplace_back(asynParseOne(item, *pResult));
         // 仅仅放入指针，具体指针指向的内存改动，由任务函数完成
         vResult.emplace_back(pResult);
+    }
+    return vRet;
+}
+
+std::vector<std::future<ERROR_CODE>> dcqReal::asynParseBatchCb(
+    const std::vector<std::string> &vDomain, OutputFunc callback) {
+    // 定义返回值
+    vector<future<ERROR_CODE>> vRet;
+    if (!m_inited) {
+        // 为初始化直接返回错误码
+        LOG_ERROR("Hasn't been inited");
+        SET_ERRMSG("Hasn't been inited");
+        for (size_t i = 0; i < vDomain.size(); ++i) {
+            vRet.emplace_back(async([] { return FAILED_UNINITED; }));
+        }
+        return vRet;
+    }
+
+    for (auto &item : vDomain) {
+        // 插入任务函数
+        vRet.emplace_back(asynParseOneCb(item, callback));
     }
     return vRet;
 }

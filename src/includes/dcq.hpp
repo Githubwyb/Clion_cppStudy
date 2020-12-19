@@ -62,6 +62,16 @@ class dcqReal {
     std::future<ERROR_CODE> asynParseOne(const std::string &, KeyValueMap &);
 
     /**
+     * @brief 异步解析一个域名，带回调函数
+     *
+     * @param domain const std::string & 要解析的域名
+     * @param callback OutputFunc 回调函数
+     * @return std::future<ERROR_CODE> 错误码，错误信息从getErrorMsg获取
+     */
+    std::future<ERROR_CODE> asynParseOneCb(const std::string &domain,
+                                           OutputFunc callback);
+
+    /**
      * @brief 批量解析域名
      *
      * @param vDomain const std::vector<std::string> 要解析的域名列表
@@ -82,6 +92,16 @@ class dcqReal {
         const std::vector<std::string> &,
         std::vector<std::shared_ptr<KeyValueMap>> &);
 
+    /**
+     * @brief 异步批量解析域名，带回调函数
+     *
+     * @param vDomain const std::vector<std::string> 要解析的域名列表
+     * @param callback OutputFunc 回调函数
+     * @return std::vector<std::future<ERROR_CODE>> 解析错误码
+     */
+    std::vector<std::future<ERROR_CODE>> asynParseBatchCb(
+        const std::vector<std::string> &vDomain, OutputFunc callback);
+
    private:
     std::stack<std::string> m_errMsg;          // 错误信息栈
     std::atomic<bool> m_inited;                // 是否初始化
@@ -100,7 +120,7 @@ class dcqReal {
     void setErrorMsg(const char *fmt, ...);
 
     /**
-     * @brief 任务函数，静态成员函数
+     * @brief 任务函数
      *
      * @param p dcqReal * 类指针，为了调用parserOne方法
      * @param domain const std::string & 域名
@@ -109,6 +129,17 @@ class dcqReal {
      */
     static ERROR_CODE run(dcqReal *p, const std::string &domain,
                           KeyValueMap *result);
+
+    /**
+     * @brief 任务函数带回调函数
+     *
+     * @param p dcqReal * 类指针，为了调用parserOne方法
+     * @param domain const std::string & 域名
+     * @param callback OutputFunc 回调函数
+     * @return ERROR_CODE 错误码，错误信息从getErrorMsg获取
+     */
+    static ERROR_CODE runCb(dcqReal *p, const std::string &domain,
+                            OutputFunc callback);
 };
 
 }  // namespace libdcq
