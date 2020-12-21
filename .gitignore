@@ -11,9 +11,6 @@
 
 # includes
 !/includes/
-/includes/*
-!/includes/*.hpp
-!/includes/*.h
 
 # src
 !/src/
