@@ -9,23 +9,27 @@
 
 #define LOG_HEX(data, length) Log::log_hex(data, length)
 #define LOG_BIN(data, length) Log::log_binary(data, length)
+#define PRINT(fmt, ...) Log::log_print(fmt, ##__VA_ARGS__)
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 
 #define FileName(str) Log::splitFileName(str)
 
+#define LOG_PRINT(fmt, ...)             \
+    Log::log_print(fmt, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
 #define LOG_DEBUG(fmt, ...)                                                                       \
     Log::log_header(LOG_LEVEL_DEBUG);                                                             \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_WARN(fmt, ...)                                                                        \
-    Log::log_header(LOG_LEVEL_WARN);                                                              \
-    Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
-    Log::log_print("\r\n")
 #define LOG_INFO(fmt, ...)                                                                        \
     Log::log_header(LOG_LEVEL_INFO);                                                              \
+    Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
+#define LOG_WARN(fmt, ...)                                                                        \
+    Log::log_header(LOG_LEVEL_WARN);                                                              \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
 #define LOG_ERROR(fmt, ...)                                                                       \
@@ -36,21 +40,27 @@
     Log::log_header(LOG_LEVEL_FATAL);                                                             \
     Log::log_print("[%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::log_print("\r\n")
-#define LOG_PRINT(fmt, ...)             \
-    Log::log_print(fmt, ##__VA_ARGS__); \
-    Log::log_print("\r\n")
-
-#define PRINT(fmt, ...) Log::log_print(fmt, ##__VA_ARGS__)
 
 #else
 
-#define LOG_DEBUG(fmt, ...)
-#define LOG_WARN(fmt, ...)
-#define LOG_INFO(fmt, ...)
-#define LOG_ERROR(fmt, ...)
-#define LOG_FATAL(fmt, ...)
 #define LOG_PRINT(fmt, ...)
-#define PRINT(fmt, ...)
+#define LOG_DEBUG(fmt, ...)
+#define LOG_INFO(fmt, ...)                  \
+    Log::log_header(LOG_LEVEL_INFO);        \
+    Log::log_print(" " fmt, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
+#define LOG_WARN(fmt, ...)                  \
+    Log::log_header(LOG_LEVEL_WARN);        \
+    Log::log_print(" " fmt, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
+#define LOG_ERROR(fmt, ...)                 \
+    Log::log_header(LOG_LEVEL_ERROR);       \
+    Log::log_print(" " fmt, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
+#define LOG_FATAL(fmt, ...)                 \
+    Log::log_header(LOG_LEVEL_FATAL);       \
+    Log::log_print(" " fmt, ##__VA_ARGS__); \
+    Log::log_print("\r\n")
 
 #endif
 
