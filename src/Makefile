@@ -5,7 +5,7 @@ TYPE = app
 TARGET = $(OUTPUTDIR)/$(BINNAME)
 
 #源文件路径，跟makefile文件同目录不用填，目录使用/结束
-SRCDIR = ./app/ ./utils/ ./threepart/iniReader/
+SRCDIR = ./app/ ./utils/
 #编译中间文件路径，跟SRCDIR目录不用填，目录使用/结束
 OBJDIR =
 #生成目标文件TARGET，存放路径，跟makefile文件同目录不用填，目录使用/结束
@@ -17,10 +17,10 @@ INSTALL_TARGETDIR = $(APP_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += -pthread -ldl threepart/libhv/lib/libhv.a -lcurl threepart/spdlog/build/libspdlog.a -lmylib
+LIB += -pthread -ldl ../threepart/libhv/lib/libhv.a -lcurl ../threepart/spdlog/build/libspdlog.a -lmylib
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
-INCLUDE += -I$(PREFIX_INC) -I./includes -I./threepart  -I./threepart/spdlog/include
+INCLUDE += -I$(PREFIX_INC) -I./includes -I../threepart  -I../threepart/spdlog/include
 
 CFLAGS += -DLINUX -Wall -Wshadow -std=c11
 CXXFLAGS += -DLINUX -Wall -Wshadow -std=c++14

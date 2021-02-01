@@ -19,7 +19,7 @@ INSTALL_TARGETDIR = $(SO_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB +=subhook/CMakeFiles/subhook.dir/subhook.c.o subhook/CMakeFiles/subhook.dir/subhook_unix.c.o subhook/CMakeFiles/subhook.dir/subhook_x86.c.o -ldl
+LIB += -ldl -L$(PREFIX_LIB) -lsubhook
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I../includes
 

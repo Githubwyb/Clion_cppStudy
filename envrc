@@ -10,3 +10,5 @@ export PREFIX_LIB="${OUTPUTLIBDIR}"
 
 export BINNAME="run"
 
+export LD_LIBRARY_PATH="${OUTPUTLIBDIR}":"${LD_LIBRARY_PATH}"
+
