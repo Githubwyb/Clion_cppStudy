@@ -10,7 +10,7 @@
 
 #include "common.hpp"
 
-#include "libhv/include/hv/httpdef.h"
+//#include "libhv/include/hv/httpdef.h"
 
 class utils {
    public:
@@ -26,7 +26,7 @@ class utils {
      * @param method http_method 请求类型，具体见 enum http_metod
      * @return std::string & 请求的结果
      **/
-    static std::string getRequestResult(const std::string &, http_method method = HTTP_GET);
+//    static std::string getRequestResult(const std::string &, http_method method = HTTP_GET);
 };
 
 #endif /* UTILS_HPP */

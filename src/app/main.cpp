@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "baseInstance.hpp"
-#include "bugReport.hpp"
+//#include "bugReport.hpp"
 #include "common.hpp"
 #include "log.hpp"
 #include "threadPool.hpp"
@@ -40,11 +40,12 @@ int run(char *buf, int size, const char *pStrIp, testPool *b) {
 extern "C" void init_mylib(void *);
 
 int main(int argC, char *argV[]) {
-    (void)BugReportRegister("run", ".", nullptr, nullptr);
-    spdlog::set_level(spdlog::level::debug);  // Set global log level to debug
-    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%@ %!] %v");
+//    (void)BugReportRegister("run", ".", nullptr, nullptr);
+//    spdlog::set_level(spdlog::level::debug);  // Set global log level to debug
+//    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%@ %!] %v");
     auto pFunc = (void *)&testClass::testFunc;
     init_mylib(pFunc);
+    return 0;
     LOG_INFO("start, want hook func {:p}", pFunc);
     auto &pool = testPool::getInstance();
     char test[] = "tessss";

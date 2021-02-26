@@ -28,7 +28,7 @@ const string &utils::getProgramPath() {
     }
     return path;
 }
-
+#if 0
 #include "libhv/include/hv/http_client.h"
 
 string utils::getRequestResult(const string &url, http_method method) {
@@ -47,3 +47,4 @@ string utils::getRequestResult(const string &url, http_method method) {
     }
     return result;
 }
+#endif

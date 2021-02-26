@@ -1,5 +1,5 @@
 TYPE = dir
 
-SUBDIR = mylib myhook
+SUBDIR = mylib myhooklib #myhook
 
 include $(MAKEFILEDIR)/Makefile.$(TYPE)

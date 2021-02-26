@@ -2,7 +2,7 @@
 #模块类型，lib库
 TYPE = so
 #模块名称
-MODULE = $(OUTPUTLIBDIR)/libmylib
+MODULE = $(OUTPUTLIBDIR)/libmyhooklib
 #要编译的目标
 TARGET = $(MODULE).$(TYPE)
 

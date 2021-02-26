@@ -17,7 +17,7 @@ INSTALL_TARGETDIR = $(APP_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += -pthread -ldl ../threepart/libhv/lib/libhv.a -lcurl ../threepart/spdlog/build/libspdlog.a -lmylib
+LIB += -pthread -ldl -lmylib #../threepart/libhv/lib/libhv.a -lcurl ../threepart/spdlog/build/libspdlog.a
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
 INCLUDE += -I$(PREFIX_INC) -I./includes -I../threepart  -I../threepart/spdlog/include

@@ -9,11 +9,15 @@
 #include "epollWorker.hpp"
 
 #include <arpa/inet.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 #include "log.hpp"
 
@@ -339,5 +343,4 @@ void clientRun() {
 
     return;
 }
-
 
