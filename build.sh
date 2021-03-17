@@ -2,11 +2,13 @@
 
 source envrc
 
-git submodule init && git submodule update
-
 # create folders
 rm -rf "$OUTPUTDIR"
 mkdir -p "$OUTPUTLIBDIR"
+
+if [ 1 -eq 0 ]; then
+
+git submodule init && git submodule update
 
 # build lib
 # libhv
@@ -45,6 +47,7 @@ if [ ! -f "threepart/subhook/libsubhook.so" ]; then
     cd -
 fi
 cp "threepart/subhook/libsubhook.so" "$OUTPUTLIBDIR"
+fi
 
 # build main program
 make
