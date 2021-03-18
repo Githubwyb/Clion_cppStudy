@@ -17,46 +17,27 @@ using namespace std;
 
 class Solution {
    public:
-    /**
-     *
-     * @param head ListNode类
-     * @param k int整型
-     * @return ListNode类
-     */
-    ListNode *reverseKGroup(ListNode *head, int k) {
-        if (head == nullptr || head->next == nullptr || k < 2) return head;
-
-        stack<ListNode *> node_stack;
-        int n = 0;
-        ListNode *last_node = nullptr;
-        ListNode *result = head;
-        ListNode *current_node = head;
-        while (current_node != nullptr) {
-            n++;
-            node_stack.emplace(current_node);
-            current_node = current_node->next;
-            if (n < k) {
-                continue;
-            }
-            // 这里执行翻转逻辑
-            // 先出第一个，没有上一次，说明为第一个k
-            if (last_node != nullptr) {
-                // 有上一次，上一次接这一跳
-                last_node->next = node_stack.top();
-                last_node = last_node->next;
-            } else {
-                result = node_stack.top();
-                last_node = result;
-            }
-            node_stack.pop();
-            while (--n) {
-                last_node->next = node_stack.top();
-                node_stack.pop();
-                last_node = last_node->next;
-            }
-            // 这里栈已经没元素了
-            last_node->next = current_node;
+    bool hasCycle(ListNode *head) {
+		/* 思路1
+         * 想象两个人在捉迷藏，一个人先走到一个地方，另一个人去找
+         * 如果找到他的时候和他走的路程一样长，那就是原路找的
+         * 如果比他路程还短，说明另外一个人绕了一圈，也就是有环路
+         *
+         * 思路2（当前实现代码）
+         * 两个人追逐，一个走的快（一次2步），一个走的慢（一次一步）
+         * 如果相遇，说明有环路
+         *
+         * 思路3
+         * 破坏链表，遍历的同时，让前一个节点指向头指针
+         * 遍历如果到了头指针就说明有环路
+		 */
+        ListNode *pFast = head;     // 跑的快的指针
+        ListNode *pSlow = head;     // 跑得慢的指针
+        while (pFast != nullptr && pFast->next != nullptr) {
+            pSlow = pSlow->next;
+            pFast = pFast->next->next;
+            if (pSlow == pFast) return true;
         }
-        return result;
+        return false;
     }
 };
