@@ -22,10 +22,16 @@ class lru_cache {
         // 先查找value
         auto it = m_cache.find(key);
         if (it != m_cache.end()) {
-            // 找到，先删除，后面插入
-            m_lruList.erase(it->second);
-        } else if (m_lruList.size() >= cache_size) {
-            // 没找到判断是否超过最大个数，删除最后一个，map也要删除
+            // 找到修改值
+            (*it->second).second = value;
+            // 找到，将缓存插入到最前面
+            m_lruList.splice(m_lruList.begin(), m_lruList, it->second);
+            return;
+        }
+
+        // 没找到，插入
+        // 判断是否超过最大个数，删除最后一个，map也要删除
+        if (m_lruList.size() >= cache_size) {
             auto delIt = m_lruList.back();
             m_cache.erase(delIt.first);
             m_lruList.pop_back();
@@ -46,7 +52,7 @@ class lru_cache {
         // 找到，将缓存插入到最前面
         m_lruList.splice(m_lruList.begin(), m_lruList, it->second);
         // 这里返回值
-        return (*(it->second)).second;
+        return (*it->second).second;
     }
 
    private:
