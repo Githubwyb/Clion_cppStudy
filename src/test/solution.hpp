@@ -12,41 +12,19 @@ using namespace std;
 
 class Solution {
    public:
-    char getOpsite(char a) {
-        switch (a) {
-            case '{':
-                return '}';
-            case '[':
-                return ']';
-            case '(':
-                return ')';
-            default:
-                return ' ';
-        }
-    }
-    /**
-     *
-     * @param s string字符串
-     * @return bool布尔型
-     */
-    bool isValid(string s) {
-        // write code here
-        stack<char> sCheck;
-        for (auto &item : s) {
-            switch (item) {
-                case '(':
-                case '[':
-                case '{':
-                    sCheck.push(getOps(item));
-                    break;
-
-                default:
-                    if (sCheck.size() == 0 || item != sCheck.top()) {
-                        return false;
-                    }
-                    sCheck.pop();
+    void merge(int A[], int m, int B[], int n) {
+        /* 思路
+         * 从尾到头遍历，最小拷贝次数
+         */
+        int posA = m - 1;
+        int posB = n - 1;
+        int posCurrent = m + n;
+        while (posCurrent > 0) {
+            if (posA < 0 || (posB >= 0 && A[posA] < B[posB])) {
+                A[--posCurrent] = B[posB--];
+            } else {
+                A[--posCurrent] = A[posA--];
             }
         }
-        return sCheck.size() == 0;
     }
 };
