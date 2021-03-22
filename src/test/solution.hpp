@@ -12,19 +12,23 @@ using namespace std;
 
 class Solution {
    public:
-    void merge(int A[], int m, int B[], int n) {
-        /* 思路
-         * 从尾到头遍历，最小拷贝次数
-         */
-        int posA = m - 1;
-        int posB = n - 1;
-        int posCurrent = m + n;
-        while (posCurrent > 0) {
-            if (posA < 0 || (posB >= 0 && A[posA] < B[posB])) {
-                A[--posCurrent] = B[posB--];
-            } else {
-                A[--posCurrent] = A[posA--];
-            }
-        }
+    void threeOrders1(TreeNode *root, vector<vector<int>> &result) {
+        if (root == nullptr) return;
+        result[0].emplace_back(root->val);
+        threeOrders1(root->left, result);
+        result[1].emplace_back(root->val);
+        threeOrders1(root->right, result);
+        result[2].emplace_back(root->val);
+    }
+    /**
+     *
+     * @param root TreeNode类 the root of binary tree
+     * @return int整型vector<vector<>>
+     */
+    vector<vector<int>> threeOrders(TreeNode *root) {
+        // write code here
+        vector<vector<int>> result = {{}, {}, {}};
+        threeOrders1(root, result);
+        return result;
     }
 };
