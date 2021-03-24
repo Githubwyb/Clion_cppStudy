@@ -21,41 +21,19 @@ class Solution {
    public:
     /**
      *
-     * @param root TreeNodeÀà
-     * @return int整型vector<vector<>>
+     * @param prices int整型vector
+     * @return int整型
      */
-    vector<vector<int>> zigzagLevelOrder(TreeNode *root) {
+    int maxProfit(vector<int>& prices) {
         // write code here
-        if (root == nullptr) return {};
-        vector<vector<int>> result;
-        list<TreeNode *> floor;  // 每一层
-        bool isReverse = false;
-        // 先放一个根节点
-        floor.emplace_front(root);
-        while (!floor.empty()) {
-            vector<int> current;
-            int listSize = floor.size();
-            while (listSize--) {
-                if (!isReverse) {
-                    // 顺序层从前向后遍历
-                    TreeNode *tmp = floor.front();
-                    floor.pop_front();
-                    current.emplace_back(tmp->val);
-                    // 插入从后插入，左节点开始
-                    if (tmp->left) floor.emplace_back(tmp->left);
-                    if (tmp->right) floor.emplace_back(tmp->right);
-                } else {
-                    // 倒序层从后向前遍历
-                    TreeNode *tmp = floor.back();
-                    floor.pop_back();
-                    current.emplace_back(tmp->val);
-                    // 插入从前插入，右节点开始
-                    if (tmp->right) floor.emplace_front(tmp->right);
-                    if (tmp->left) floor.emplace_front(tmp->left);
-                }
-            }
-            if (!current.empty()) result.emplace_back(current);
-            isReverse = !isReverse;
+		int result = 0;
+        int nMin = prices.front();   // 前n个数中最小的
+        // 以每个点为卖出点遍历
+        for (auto &tmp : prices) {
+            // 找到卖出点前最小的作为买入点
+            nMin = tmp < nMin ? tmp : nMin;
+            int earnings = tmp - nMin;
+            result = result < earnings ? earnings : result;
         }
         return result;
     }
