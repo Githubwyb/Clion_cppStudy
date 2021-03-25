@@ -8,33 +8,27 @@
 
 #include <list>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
-struct TreeNode {
-    int val;
-    struct TreeNode *left;
-    struct TreeNode *right;
-};
-
 class Solution {
    public:
-    /**
-     *
-     * @param prices int整型vector
-     * @return int整型
-     */
-    int maxProfit(vector<int>& prices) {
+    int findKth(vector<int> a, int n, int K) {
         // write code here
-		int result = 0;
-        int nMin = prices.front();   // 前n个数中最小的
-        // 以每个点为卖出点遍历
-        for (auto &tmp : prices) {
-            // 找到卖出点前最小的作为买入点
-            nMin = tmp < nMin ? tmp : nMin;
-            int earnings = tmp - nMin;
-            result = result < earnings ? earnings : result;
+        /* 思路
+         * 小根堆实现
+         */
+        // 构建小根堆
+        auto cmp = [] (int &a1, int &b) { return a1 > b; };
+        make_heap(a.begin(), a.begin() + K, cmp);
+        for (int i = K; i < n; ++i) {
+            // 如果第n个值大于堆顶，堆顶移出，插入新值
+            if (a[i] > a.front()) {
+                swap(a[K], a[i]);
+                pop_heap(a.begin(), a.begin() + K + 1, cmp);
+            }
         }
-        return result;
+        return a.front();
     }
 };
