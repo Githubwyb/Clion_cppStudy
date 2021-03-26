@@ -15,6 +15,7 @@ using namespace std;
 //  完成使用场景的测试
 TEST(test, scene) {
     Solution so;
-    EXPECT_EQ(so.findKth({1,3,5,2,2}, 5, 3), 2);
+    vector<int> test1 = {0, 1, 2, 3, 4};
+    EXPECT_EQ(so.search(test1, 2), 2);
 }
 
