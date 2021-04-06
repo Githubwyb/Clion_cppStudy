@@ -15,9 +15,7 @@ using namespace std;
 //  完成使用场景的测试
 TEST(test, scene) {
     Solution so;
-    vector<int> tmp = {2,3,4,5};
-    EXPECT_EQ(so.maxLength(tmp), 4);
-    vector<int> tmp1 = {2,2,3,4,3};
-    EXPECT_EQ(so.maxLength(tmp1), 3);
+    EXPECT_EQ(so.getLongestPalindrome("baabccc",7), 4);
+    EXPECT_EQ(so.getLongestPalindrome("ccbcabaabba",11), 4);
 }
 

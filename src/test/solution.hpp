@@ -9,34 +9,44 @@
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
+#include <string>
 
 using namespace std;
 
 class Solution {
    public:
-    /**
-     *
-     * @param arr int整型vector the array
-     * @return int整型
-     */
-    int maxLength(vector<int>& arr) {
+    int getLongestPalindrome(string A, int n) {
         // write code here
-        unordered_map<int, int> um_map;
-        int len = arr.size();
         int result = 0;
-        for (int i = 0; i < len; i++) {
-            // if value in map, map size may be the result, then i = last common value + 1
-            auto it = um_map.find(arr[i]);
-            if (it != um_map.end()) {
-                int mapLen = um_map.size();
-                result = result > mapLen ? result : mapLen;
-                i = it->second + 1;
-                um_map.clear();
+        for (int i = 0; i < n; i++) {
+            // think every char as mid, caculate the same len
+            // 1234321
+            int j = 0;
+            for (j = 1; j < (i + 1) && j < (n - i); ++j) {
+                if (A[i + j] != A[i - j]) {
+                    int len = (j - 1) * 2 + 1;
+                    result = result > len ? result : len;
+                    break;
+                }
             }
-            um_map[arr[i]] = i;
+            if (j == (i + 1) || j == (n - i)) {
+                int len = (j - 1) * 2 + 1;
+                result = result > len ? result : len;
+            }
+            // think every char as left first, caculate the same len
+            // 123321
+            for (j = 0; j < (i + 1) && j < (n - i - 1); ++j) {
+                if (A[i + j + 1] != A[i - j]) {
+                    int len = j * 2;
+                    result = result > len ? result : len;
+                    break;
+                }
+            }
+            if (j == (i + 1) || j == (n - i - 1)) {
+                int len = j * 2;
+                result = result > len ? result : len;
+            }
         }
-        int mapLen = um_map.size();
-        result = result > mapLen ? result : mapLen;
         return result;
     }
 };
