@@ -15,6 +15,9 @@ using namespace std;
 //  完成使用场景的测试
 TEST(test, scene) {
     Solution so;
-    EXPECT_EQ(so.findKth({1,3,5,2,2}, 5, 3), 2);
+    vector<int> tmp = {2,3,4,5};
+    EXPECT_EQ(so.maxLength(tmp), 4);
+    vector<int> tmp1 = {2,2,3,4,3};
+    EXPECT_EQ(so.maxLength(tmp1), 3);
 }
 

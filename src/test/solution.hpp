@@ -7,8 +7,8 @@
  */
 
 #include <algorithm>
-#include <list>
 #include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -16,21 +16,27 @@ class Solution {
    public:
     /**
      *
-     * @param numbers int整型vector
-     * @param target int整型
-     * @return int整型vector
+     * @param arr int整型vector the array
+     * @return int整型
      */
-    vector<int> twoSum(vector<int>& numbers, int target) {
+    int maxLength(vector<int>& arr) {
         // write code here
-        int len = numbers.size();
-        for (int i = 0; i < len - 1; ++i) {
-            int tg = target - numbers[i];
-            for (int j = i + 1; j < len; ++j) {
-                if (tg == numbers[j]) {
-                    return {i + 1, j + 1};
-                }
+        unordered_map<int, int> um_map;
+        int len = arr.size();
+        int result = 0;
+        for (int i = 0; i < len; i++) {
+            // if value in map, map size may be the result, then i = last common value + 1
+            auto it = um_map.find(arr[i]);
+            if (it != um_map.end()) {
+                int mapLen = um_map.size();
+                result = result > mapLen ? result : mapLen;
+                i = it->second + 1;
+                um_map.clear();
             }
+            um_map[arr[i]] = i;
         }
-        return {};
+        int mapLen = um_map.size();
+        result = result > mapLen ? result : mapLen;
+        return result;
     }
 };

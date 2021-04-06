@@ -21,7 +21,7 @@ int main(int argC, char *argV[]) {
 //    (void)BugReportRegister("run", ".", nullptr, nullptr);
 //    spdlog::set_level(spdlog::level::debug);  // Set global log level to debug
 //    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%@ %!] %v");
-    LOG_INFO("Hello, main, '  \'");
+    LOG_INFO("Hello, main");
     return 0;
 }
 
