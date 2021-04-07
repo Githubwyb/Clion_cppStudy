@@ -13,40 +13,59 @@
 
 using namespace std;
 
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode(int x) : val(x), next(NULL) {}
+};
+
 class Solution {
    public:
-    int getLongestPalindrome(string A, int n) {
-        // write code here
-        int result = 0;
-        for (int i = 0; i < n; i++) {
-            // think every char as mid, caculate the same len
-            // 1234321
-            int j = 0;
-            for (j = 1; j < (i + 1) && j < (n - i); ++j) {
-                if (A[i + j] != A[i - j]) {
-                    int len = (j - 1) * 2 + 1;
-                    result = result > len ? result : len;
-                    break;
-                }
+    ListNode *detectCycle(ListNode *head) {
+        /*
+         * thinking 1
+         * destroy the list, make every node point to some standard node,
+         * if one point point to standard node, it's the circle head
+         */
+#if 0
+        ListNode *pStand = new ListNode(0);
+        while (head != nullptr) {
+            if (head->next == pStand) {
+                return head;
             }
-            if (j == (i + 1) || j == (n - i)) {
-                int len = (j - 1) * 2 + 1;
-                result = result > len ? result : len;
-            }
-            // think every char as left first, caculate the same len
-            // 123321
-            for (j = 0; j < (i + 1) && j < (n - i - 1); ++j) {
-                if (A[i + j + 1] != A[i - j]) {
-                    int len = j * 2;
-                    result = result > len ? result : len;
-                    break;
-                }
-            }
-            if (j == (i + 1) || j == (n - i - 1)) {
-                int len = j * 2;
-                result = result > len ? result : len;
+            ListNode *tmp = head->next;
+            // make every node point to -1
+            head->next = pStand;
+            head = tmp;
+        }
+        return nullptr;
+#endif
+        /*
+         * thinking 2
+         * math think, fast slow point
+         * find the meet point, make tow point run from begin and meet point
+         * when they meet, that's the circle head
+         */
+        ListNode *fast = head;
+        ListNode *slow = head;
+        while (fast != nullptr && fast->next != nullptr) {
+            fast = fast->next->next;        // move two step
+            slow = slow->next;
+            if (fast == slow) {
+                break;
             }
         }
-        return result;
+        if (fast == nullptr || fast->next == nullptr) {
+            // find the tail, must have no circle
+            return nullptr;
+        }
+
+        // if meet, one run from head, one from meet
+        fast = head;
+        while (fast != slow) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+        return fast;
     }
 };
