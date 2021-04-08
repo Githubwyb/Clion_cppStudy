@@ -15,7 +15,11 @@ using namespace std;
 //  完成使用场景的测试
 TEST(test, scene) {
     Solution so;
-    EXPECT_EQ(so.getLongestPalindrome("baabccc",7), 4);
-    EXPECT_EQ(so.getLongestPalindrome("ccbcabaabba",11), 4);
+    vector<vector<int>> tv = {{1,3,5,9}, {8,1,3,4}, {5,0,6,1}, {8,8,4,0}};
+    int tmp = so.minPathSum(tv);
+    LOG_INFO("tmp %d");
+    EXPECT_EQ(tmp, 12);
+//    EXPECT_EQ(so.getLongestPalindrome("baabccc",7), 4);
+//    EXPECT_EQ(so.getLongestPalindrome("ccbcabaabba",11), 4);
 }
 

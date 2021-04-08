@@ -7,65 +7,53 @@
  */
 
 #include <algorithm>
-#include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode(int x) : val(x), next(NULL) {}
-};
-
 class Solution {
    public:
-    ListNode *detectCycle(ListNode *head) {
-        /*
-         * thinking 1
-         * destroy the list, make every node point to some standard node,
-         * if one point point to standard node, it's the circle head
-         */
-#if 0
-        ListNode *pStand = new ListNode(0);
-        while (head != nullptr) {
-            if (head->next == pStand) {
-                return head;
+    void printV(vector<vector<int>> &data) {
+        for (auto &tmp : data) {
+            for (auto &item : tmp) {
+                printf("%d ", item);
             }
-            ListNode *tmp = head->next;
-            // make every node point to -1
-            head->next = pStand;
-            head = tmp;
+            printf("\n");
         }
-        return nullptr;
-#endif
-        /*
-         * thinking 2
-         * math think, fast slow point
-         * find the meet point, make tow point run from begin and meet point
-         * when they meet, that's the circle head
-         */
-        ListNode *fast = head;
-        ListNode *slow = head;
-        while (fast != nullptr && fast->next != nullptr) {
-            fast = fast->next->next;        // move two step
-            slow = slow->next;
-            if (fast == slow) {
-                break;
+    }
+    /**
+     *
+     * @param matrix int整型vector<vector<>> the matrix
+     * @return int整型
+     */
+    int minPathSum(vector<vector<int>> &matrix) {
+        // write code here
+        int row = matrix.size();
+        if (row == 0) return 0;
+        int column = matrix[0].size();
+        if (column == 0) return 0;
+        // row traverse
+        vector<vector<int>> distance(row, vector<int>(column, 0));
+        distance[0][0] = matrix[0][0];
+        for (int i = 1; i < row; ++i) {
+            distance[i][0] = distance[i - 1][0] + matrix[i][0];
+        }
+        for (int j = 1; j < column; ++j) {
+            distance[0][j] = distance[0][j - 1] + matrix[0][j];
+        }
+        for (int i = 1; i < row; ++i) {
+            for (int j = 1; j < column; ++j) {
+                distance[i][j] = (distance[i - 1][j] < distance[i][j - 1]
+                                      ? distance[i - 1][j]
+                                      : distance[i][j - 1]) +
+                                 matrix[i][j];
             }
         }
-        if (fast == nullptr || fast->next == nullptr) {
-            // find the tail, must have no circle
-            return nullptr;
-        }
-
-        // if meet, one run from head, one from meet
-        fast = head;
-        while (fast != slow) {
-            fast = fast->next;
-            slow = slow->next;
-        }
-        return fast;
+        printV(matrix);
+        printf("\n");
+        printV(distance);
+        return distance.back().back();
     }
 };
