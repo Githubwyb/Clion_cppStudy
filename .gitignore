@@ -18,12 +18,14 @@
 # lib
 !/lib/
 
-# build
-!/build/
-/build/*
-
 # config
 !/config/
+
+# threepart
+!/threepart/
+
+# test
+!/test/
 
 # common sufix
 *.o
@@ -41,3 +43,4 @@
 !*.h
 !*Makefile
 !*README.md
+!*CMakeLists.txt

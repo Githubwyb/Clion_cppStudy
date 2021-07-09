@@ -9,7 +9,7 @@
 #ifndef LIB_COMMON_HPP
 #define LIB_COMMON_HPP
 
-#define MYLIB_API __attribute__((visibility("default")))
+#define EXPORT_API __attribute__((visibility("default")))
 
 #endif /* LIB_COMMON_HPP */
 

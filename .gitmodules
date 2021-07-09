@@ -4,3 +4,6 @@
 [submodule "threepart/spdlog"]
 	path = threepart/spdlog
 	url = git@gitee.com:giteewyb/spdlog.git
+[submodule "threepart/gtest"]
+	path = threepart/gtest
+	url = git@gitee.com:giteewyb/googletest.git

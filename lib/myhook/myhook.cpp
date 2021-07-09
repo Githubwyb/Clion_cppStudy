@@ -32,7 +32,7 @@ int my_run(void *p, char *buf, int size, const char *pStrIp, void *pV) {
 }
 
 typedef void (*func_mylib)(void *);
-extern "C" MYLIB_API void init_mylib(void *pFunc) {
+extern "C" EXPORT_API void init_mylib(void *pFunc) {
     LOG_INFO("Hook init_mylib, %p", pFunc);
     foo_hook = subhook_new(pFunc, (void *)my_run, SUBHOOK_64BIT_OFFSET);
     LOG_INFO("do hook");
