@@ -7,5 +7,16 @@ list(APPEND SRC_FILES ${COMMON_SRC_FILES})
 # 生成动态库，不带SHARED生成静态库
 add_library(${LIB_NAME} SHARED ${SRC_FILES})
 
+find_package(OpenSSL REQUIRED)
+
 # 给可执行文件编译设置头文件目录
-target_include_directories(${LIB_NAME} PRIVATE ../includes ../../includes)
+target_include_directories(${LIB_NAME} PRIVATE
+    ../includes
+    ../../includes
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+# 链接库
+target_link_libraries(${LIB_NAME} PRIVATE
+    ${OPENSSL_LIBRARIES}
+)

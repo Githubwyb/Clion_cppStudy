@@ -2,14 +2,7 @@
     "configurations": [
         {
             "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/includes",
-                "${workspaceFolder}/src/includes",
-                "${workspaceFolder}/threepart",
-                "${workspaceFolder}/threepart/gtest/googletest/include",
-            ],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",
             "intelliSenseMode": "gcc-x64",
             "cppStandard": "c++20",
             "cStandard": "c11",

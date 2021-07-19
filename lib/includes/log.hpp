@@ -11,7 +11,7 @@
 #define LOG_BIN(data, length) Log::log_binary(data, length)
 #define PRINT(fmt, ...) Log::log_print(fmt, ##__VA_ARGS__)
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 

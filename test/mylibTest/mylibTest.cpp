@@ -22,6 +22,8 @@ class MylibTestClass : public testing::Test {
         spdlog::set_level(
             spdlog::level::debug);  // Set global log level to debug
         spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%s:%# %!] %v");
+
+        LOG_INFO("Test case setup");
     }
 
     /**

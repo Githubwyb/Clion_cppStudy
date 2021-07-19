@@ -10,7 +10,7 @@ endforeach(SRC_DIR)
 
 if(WIN32)
     # windows下epollworker编译不过，因为都是linuxapi
-    list(REMOVE_ITEM SRC_FILES "app/epollWorker.cpp")
+    list(REMOVE_ITEM SRC_FILES "./app/epollWorker.cpp")
 endif()
 
 # 将变量指定的源文件编译成可执行文件main

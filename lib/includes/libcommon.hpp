@@ -9,7 +9,11 @@
 #ifndef LIB_COMMON_HPP
 #define LIB_COMMON_HPP
 
+#if WIN32
+#define EXPORT_API __declspec(dllexport)
+#else
 #define EXPORT_API __attribute__((visibility("default")))
+#endif
 
 #endif /* LIB_COMMON_HPP */
 

@@ -8,7 +8,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dcq",
+            "program": "${workspaceFolder}/build/output/run",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -9,8 +9,8 @@
 #include <time.h>
 #include <stdarg.h>
 #include <string.h>
-#include <unistd.h>
-#include <pthread.h>
+// #include <unistd.h>
+// #include <pthread.h>
 
 void Log::log_print(const char *fmt, ...) {
     va_list arg;
@@ -93,9 +93,10 @@ void Log::log_binary(const void *data, int length) {
 
 void Log::log_header(LOG_LEVEL level) {
     print_currentTime();
-    log_print(" [%lu:%lu][%s]",
-           (unsigned long int) getpid(),
-           (unsigned long int) pthread_self(),
+    log_print(" [%s]",
+    // log_print(" [%lu:%lu][%s]",
+        //    (unsigned long int) getpid(),
+        //    (unsigned long int) pthread_self(),
            getLevelString(level));
 }
 
