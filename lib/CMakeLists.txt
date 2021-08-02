@@ -1,4 +1,4 @@
 project(LIBS)
 
-# 暂时只编译mylib
-add_subdirectory(mylib)
+# 暂时只编译libskf
+add_subdirectory(libskf)

@@ -16,8 +16,14 @@ endif()
 # 将变量指定的源文件编译成可执行文件main
 ADD_EXECUTABLE(${BIN_NAME} ${SRC_FILES})
 
+# 使用spdlog作为日志库
+# add_definitions(-DUSE_SPDLOG)
+target_compile_definitions(${BIN_NAME} PRIVATE
+    USE_SPDLOG
+)
+
 # 给可执行文件编译设置头文件目录
-target_include_directories(${BIN_NAME} PRIVATE ./includes ../includes spdlog)
+target_include_directories(${BIN_NAME} PRIVATE ./include ../include spdlog)
 
 # 给可执行文件添加动态链接库
 link_directories(${PROJECT_SOURCE_DIR}/build/output/lib) #添加动态连接库的路径

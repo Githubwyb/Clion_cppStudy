@@ -1,7 +1,6 @@
 # cmake最小支持版本3.8
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
-
 # 项目工程名字
 PROJECT(Clion_cppStudy
     LANGUAGES C CXX
@@ -17,6 +16,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 11)
+# 设置符号隐藏
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # 设置选项
 option(TEST "Generate test, default is ON" ON)
@@ -28,11 +30,8 @@ else(RELEASE)
    SET(CMAKE_BUILD_TYPE "DEBUG" CACHE STRING "" FORCE)
 endif(RELEASE)
 
-
 # 设置编译二进制名字
 SET(BIN_NAME run)
-# 设置编译二进制名字
-SET(LIB_NAME mylib)
 
 if (MSVC)
     # windows的msvc编译，需要将gtest的选项改一下，不然编译有问题
@@ -40,10 +39,13 @@ if (MSVC)
 
     # 对msvc关闭uincode的warning提示
     add_compile_options(/wd4819)
+    # 对msvc关闭unsafe func的提示
+    add_compile_options(/wd4996)
 endif()
 
 # 先编译第三方库
 add_subdirectory(threepart)
+include_directories(include)
 # 设置lib子目录
 add_subdirectory(lib)
 # 设置src子目录
