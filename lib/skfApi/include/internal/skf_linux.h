@@ -9,45 +9,46 @@
  *
  */
 
-#ifndef SKF_WIN_H
-#define SKF_WIN_H
+#ifndef SKF_LINUX_H
+#define SKF_LINUX_H
 
-#include <windows.h>
+#include <dlfcn.h>
+#include <errno.h>
 
 #include "log.hpp"
+
 #include "skf_base.h"
 
-INHERIT_SKF_BASE(Win, HMODULE);
+INHERIT_SKF_BASE(Linux, void *);
 
-#define loadFunc(funcName)                                             \
-    m_apiHandle.pFun_##funcName =                                     \
-        (PFun_##funcName)GetProcAddress(m_libHandle, #funcName);       \
-    if (m_apiHandle.pFun_##funcName == nullptr) {                     \
-        LOG_ERROR("SKFApiWin", "Func %s not found in lib", #funcName); \
-        break;                                                         \
+#define loadFunc(funcName)                                               \
+    m_apiHandle.pFun_##funcName =                                        \
+        (PFun_##funcName)dlsym(m_libHandle, #funcName);                 \
+    if (m_apiHandle.pFun_##funcName == nullptr) {                        \
+        LOG_ERROR("Func %s not found in lib", #funcName); \
+        return SAR_FAIL;                                                 \
     }
 
-SKFApiWin::~SKFApiWin() {
+SKFApiLinux::~SKFApiLinux() {
     if (m_libHandle != NULL) {
-        FreeLibrary(m_libHandle);
+        dlclose(m_libHandle);
         m_libHandle = NULL;
     }
-    LOG_DEBUG("SKFApiWin", "~SKFApiWin");
+    LOG_DEBUG("~SKFApiLinux");
 }
 
-int SKFApiWin::initApi(const char *libPath) {
+int SKFApiLinux::initApi(const char *libPath) {
     int rv = SAR_FAIL;
     // 如果已经加载了库，断开重新加载
     if (m_libHandle != NULL) {
-        FreeLibrary(m_libHandle);
+        dlclose(m_libHandle);
         m_libHandle = NULL;
         memset(&m_apiHandle, 0, sizeof(m_apiHandle));
     }
-
-    m_libHandle = LoadLibrary(libPath);
+    m_libHandle = dlopen(libPath, RTLD_LAZY);
     if (m_libHandle == NULL) {
-        LOG_ERROR("SKFApiWin", "Load library failed, errCode %d, path %s",
-                  GetLastError(), libPath);
+        LOG_ERROR("Load library failed, err %s, path %s",
+                  dlerror(), libPath);
         return -1;
     }
     do {
@@ -74,10 +75,12 @@ int SKFApiWin::initApi(const char *libPath) {
     // 失败清理
     memset(&m_apiHandle, 0, sizeof(m_apiHandle));
     if (m_libHandle != NULL) {
-        FreeLibrary(m_libHandle);
+        dlclose(m_libHandle);
         m_libHandle = NULL;
     }
     return SAR_FAIL;
 }
 
-#endif /* SKF_WIN_H */
+#endif /* SKF_LINUX_H */
+
+

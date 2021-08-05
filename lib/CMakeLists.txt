@@ -1,4 +1,2 @@
-project(LIBS)
-
 # 暂时只编译libskf
-add_subdirectory(libskf)
+add_subdirectory(skfApi)

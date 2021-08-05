@@ -15,6 +15,8 @@
 #include <openssl/x509.h>
 #include <string.h>
 
+#include <algorithm>
+
 #include "log.hpp"
 
 typedef std::vector<std::string> StrList;
@@ -93,6 +95,49 @@ END:
     return bRet;
 }
 
+static int getCertIssuer(const std::vector<BYTE> &certInfo,
+                         std::string &issuer) {
+    X509 *pUsrCert = NULL;
+    X509_NAME *pIssuerName = NULL;
+    BIO *pBio = NULL;
+    char *pszIssuerName = NULL;
+    BOOL bRet = FALSE;
+
+    do {
+        pBio = BIO_new(BIO_s_mem());
+        if (pBio == NULL) {
+            LOG_ERROR("BIO_new failed");
+            break;
+        }
+        BIO_write(pBio, &(certInfo.front()), certInfo.size());
+        pUsrCert = d2i_X509_bio(pBio, NULL);
+        if (pUsrCert == NULL) {
+            LOG_ERROR("d2i_X509_bio failed \n");
+            break;
+        }
+        pIssuerName = X509_get_issuer_name(pUsrCert);
+        if (!pIssuerName) {
+            LOG_ERROR("X509_get_issuer failed \n");
+            break;
+        }
+        pszIssuerName = X509_NAME_oneline(pIssuerName, NULL, 0);
+        if (!pszIssuerName) {
+            LOG_ERROR("X509_NAME_oneline failed \n");
+            break;
+        }
+
+        issuer = pszIssuerName;
+        bRet = TRUE;
+    } while (false);
+    if (pBio != NULL) {
+        BIO_free(pBio);
+    }
+    if (pUsrCert != NULL) {
+        X509_free(pUsrCert);
+    }
+    return bRet;
+}
+
 static int getCertSubject(const std::vector<BYTE> &certInfo,
                           std::string &subject) {
     X509 *pUsrCert = NULL;
@@ -127,12 +172,100 @@ static int getCertSubject(const std::vector<BYTE> &certInfo,
         subject = pszSubjectName;
         bRet = TRUE;
     } while (false);
-    if (pBio != NULL) {
-        BIO_free(pBio);
-    }
-    if (pUsrCert != NULL) {
-        X509_free(pUsrCert);
-    }
+
+    if (pBio != NULL) BIO_free(pBio);
+
+    if (pUsrCert != NULL) X509_free(pUsrCert);
+    return bRet;
+}
+
+static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
+                                     std::string &userName,
+                                     std::string &issuer) {
+    BIO *pBio = NULL;
+    X509 *pUsrCert = NULL;
+    X509_NAME *pSubjectName = NULL;
+    char *pszSubjectName = NULL;
+    X509_NAME *pIssuerName = NULL;
+    char *pszIssuerName = NULL;
+    ASN1_TIME *pAfterTime = NULL;
+    bool bRet = false;
+
+    do {
+        pBio = BIO_new(BIO_s_mem());
+        if (pBio == NULL) {
+            LOG_ERROR("BIO_new failed");
+            break;
+        }
+
+        BIO_write(pBio, &(certInfo.front()), certInfo.size());
+        pUsrCert = d2i_X509_bio(pBio, NULL);
+        if (pUsrCert == NULL) {
+            LOG_ERROR("d2i_X509_bio failed \n");
+            break;
+        }
+
+        // 判断证书是否过期
+        pAfterTime = X509_get_notAfter(pUsrCert);
+        if (pAfterTime) {
+            int dayDiff, secDiff = 0;
+            if (ASN1_TIME_diff(&dayDiff, &secDiff, NULL, pAfterTime) != 0) {
+                if (dayDiff < 1 && secDiff < 1) {
+                    LOG_ERROR("The cert is out deadline.\n");
+                    break;
+                }
+            }
+        }
+
+        // 获取颁发者
+        pIssuerName = X509_get_issuer_name(pUsrCert);
+        if (!pIssuerName) {
+            LOG_ERROR("X509_get_issuer failed \n");
+            break;
+        }
+        pszIssuerName = X509_NAME_oneline(pIssuerName, NULL, 0);
+        if (!pszIssuerName) {
+            LOG_ERROR("X509_NAME_oneline failed \n");
+            break;
+        }
+        issuer = pszIssuerName;
+
+        // 获取用户名
+        pSubjectName = X509_get_subject_name(pUsrCert);
+        if (!pSubjectName) {
+            LOG_ERROR("X509_get_issuer failed \n");
+            break;
+        }
+        pszSubjectName = X509_NAME_oneline(pSubjectName, NULL, 0);
+        if (!pszSubjectName) {
+            LOG_ERROR("X509_NAME_oneline failed \n");
+            break;
+        }
+
+        const char userNameSep[] = "CN=";
+        std::string allSubject(pszSubjectName);
+        std::string tempSubject(pszSubjectName);
+        // 忽略USERNAME_SEP的大小写
+        transform(tempSubject.begin(), tempSubject.end(), tempSubject.begin(),
+                  ::toupper);
+        int iStart = tempSubject.find(userNameSep);
+        if (iStart != std::string::npos) {
+            iStart += strlen(userNameSep);
+            int iEnd = allSubject.find("/", iStart);
+            if (iEnd != std::string::npos)
+                userName = allSubject.substr(iStart, iEnd - iStart);
+            else
+                userName =
+                    allSubject.substr(iStart, allSubject.size() - iStart);
+        }
+
+        if (userName.length() < 1) userName = pszSubjectName;
+        bRet = true;
+    } while (false);
+
+    if (pBio != NULL) BIO_free(pBio);
+
+    if (pUsrCert != NULL) X509_free(pUsrCert);
     return bRet;
 }
 
@@ -307,7 +440,16 @@ int SKFApiBase::ECCSignData(HCONTAINER conHandle, BYTE *pbData, ULONG ulDataLen,
                                             pSignature);
 }
 
-// int SKFApiBase::GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen) {
+int SKFApiBase::ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB *pECCPubKeyBlob,
+                          BYTE *pbData, ULONG ulDataLen,
+                          ECCSIGNATUREBLOB *pSignature) {
+    assert(hDev != NULL);
+    return m_apiHandle.pFun_SKF_ECCVerify(hDev, pECCPubKeyBlob, pbData,
+                                          ulDataLen, pSignature);
+}
+
+// int SKFApiBase::GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen)
+// {
 //     assert(hDev != NULL);
 //     assert(pbRandom != NULL);
 //     return m_apiHandle.pFun_SKF_GenRandom(hDev, pbRandom, ulRandomLen);
@@ -324,7 +466,6 @@ int SKFApiBase::ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag,
 int SKFApiBase::ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag,
                                   BYTE *pbCert, ULONG *pulCertLen) {
     assert(hContainer != NULL);
-    // assert(pbCert != NULL);
     return m_apiHandle.pFun_SKF_ExportCertificate(hContainer, bSignFlag, pbCert,
                                                   pulCertLen);
 }
@@ -357,7 +498,7 @@ int SKFApiBase::doRsaSign(const unsigned char *dgst, int dgst_len,
 }
 */
 
-int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
+int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) {
     int rv = SAR_FAIL;
     // 所有接口先判断是否初始化api
     if (!m_isApiInit) {
@@ -375,9 +516,11 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
 
         devInfoList.clear();
         for (const auto &dev : devNameList) {
+            UkeyDev tempDev;
             DEVHANDLE devHandle;
 
             StrList appNameList;
+            tempDev.devName = dev;
             // 传入string，实际只要LPSTR，需要转换
             char *devName = new char[dev.length() + 1];
             strncpy(devName, dev.c_str(), dev.length() + 1);
@@ -391,7 +534,6 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
             rv = enumApp(appNameList, devHandle);
             if (rv != SAR_OK) {
                 LOG_WARN(
-
                     "enumApp by devHandle failed, continue, err 0x%x, dev %s",
                     rv, devName);
                 disConnectDev(devHandle);
@@ -400,10 +542,11 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
             }
 
             // 遍历app，得到container
-            StrTreeNode devNode = {dev, {}};
             for (const auto &app : appNameList) {
+                UkeyApp tempApp;
                 HAPPLICATION appHandle;
 
+                tempApp.appName = app;
                 // 传入string，实际只要LPSTR，需要转换
                 StrList conNameList;
                 char *appName = new char[app.length() + 1];
@@ -416,6 +559,7 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
                              appName);
                     continue;
                 }
+
                 rv = enumContainer(appHandle, conNameList);
                 if (rv != SAR_OK) {
                     LOG_WARN(
@@ -427,9 +571,10 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
                 }
 
                 // 遍历container，得到cert
-                StrTreeNode appNode = {app, {}};
                 for (const auto &con : conNameList) {
+                    UkeyCon tempCon;
                     std::vector<BYTE> cert;
+                    tempCon.conName = con;
                     // 传入string，实际只要LPSTR，需要转换
                     char *conName = new char[con.length() + 1];
                     strncpy(conName, con.c_str(), con.length() + 1);
@@ -437,17 +582,19 @@ int SKFApiBase::enumAllInfo(std::vector<StrTreeNode> &devInfoList) {
                         reinterpret_cast<LPSTR>(conName), appHandle,
                         CertType_ENCRYPT, cert);
                     delete[] conName;
-                    // check_cert_issuer(&(cert.front()), cert.size(), "test");
-                    std::string subject;
-                    getCertSubject(cert, subject);
-                    StrTreeNode conNode = {con, {StrTreeNode(subject, {})}};
-                    appNode.child.emplace_back(conNode);
+                    if (cert.size() == 0) {
+                        continue;
+                    }
+
+                    if (getCertUserNameAndIssuer(cert, tempCon.subject,
+                                                 tempCon.issuer))
+                        tempApp.vcCons.emplace_back(tempCon);
                 }
                 closeApp(appHandle);
-                devNode.child.emplace_back(appNode);
+                tempDev.vcApps.emplace_back(tempApp);
             }
             disConnectDev(devHandle);
-            devInfoList.emplace_back(devNode);
+            devInfoList.emplace_back(tempDev);
         }
 
         rv = SAR_OK;

@@ -27,7 +27,7 @@ class MylibTestClass : public testing::Test {
             spdlog::level::debug);  // Set global log level to debug
         spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%s:%# %!] %v");
 
-        LOG_INFO("Test case setup, {}", "h");
+        LOG_INFO("Test case setup, {:x}", 0xab);
     }
 
     /**
@@ -52,10 +52,17 @@ class MylibTestClass : public testing::Test {
 #define LIB_NAME "ShuttleCsp11_3000GM.dll"
 #define LIB_PATH "C:\\Windows\\System32\\" LIB_NAME
 
-static void printStrTreeNode(const StrTreeNode &node, std::string prefix = "") {
-    printf("%s%s\n", prefix.c_str(), node.val.c_str());
-    for (const auto &child : node.child) {
-        printStrTreeNode(child, prefix + "  ");
+static void printDevInfo(const UkeyInfo &node) {
+    for (const auto &dev : node.vcDevs) {
+        printf("%s\r\n", dev.devName.c_str());
+        for (const auto &app : dev.vcApps) {
+            printf("  %s\r\n", app.appName.c_str());
+            for (const auto &con : app.vcCons) {
+                printf("    %s\r\n", con.conName.c_str());
+                printf("      %s\r\n", con.issuer.c_str());
+                printf("      %s\r\n", con.subject.c_str());
+            }
+        }
     }
 }
 
@@ -63,21 +70,22 @@ static void printStrTreeNode(const StrTreeNode &node, std::string prefix = "") {
 
 // 正常流程测试
 TEST_F(MylibTestClass, normal) {
-    LibSkfUtils libskfUtils;
-    std::vector<StrTreeNode> info;
-    libskfUtils.enumAllInfo({LIB_PATH}, info);
-    LOG_DEBUG("All info:");
+    std::vector<UkeyInfo> info;
+    LibSkfUtils::enumAllInfo({LIB_PATH}, info);
     for (const auto &tmp : info) {
-        printStrTreeNode(tmp);
+        printDevInfo(tmp);
     }
+
     LibSkf::initApi(LIB_PATH);
     LibSkf::initEngine(
-        reinterpret_cast<LPSTR>(const_cast<char *>(info[0].val.c_str())),
         reinterpret_cast<LPSTR>(
-            const_cast<char *>(info[0].child[0].val.c_str())),
+            const_cast<char *>(info[0].vcDevs[0].devName.c_str())),
         reinterpret_cast<LPSTR>(
-            const_cast<char *>(info[0].child[0].child[0].val.c_str())),
+            const_cast<char *>(info[0].vcDevs[0].vcApps[0].appName.c_str())),
+        reinterpret_cast<LPSTR>(const_cast<char *>(
+            info[0].vcDevs[0].vcApps[0].vcCons[0].conName.c_str())),
         "123456");
+
     ENGINE *eng = NULL;
     const char *eng_id = "skf";
     ENGINE_load_dynamic();
@@ -87,17 +95,23 @@ TEST_F(MylibTestClass, normal) {
 
 // 正常流程测试
 TEST_F(MylibTestClass, normal_issuer) {
-    std::vector<StrTreeNode> info;
+    std::vector<UkeyInfo> info;
     LibSkfUtils::enumAllInfo({LIB_PATH}, info);
     LOG_DEBUG("All info:");
     for (const auto &tmp : info) {
-        printStrTreeNode(tmp);
+        printDevInfo(tmp);
     }
 
     EXPECT_EQ(SAR_OK,
               LibSkfUtils::checkCertByCAIssuer(
-                  LIB_PATH, reinterpret_cast<LPSTR>(const_cast<char *>(info[0].val.c_str())),
-                  reinterpret_cast<LPSTR>(const_cast<char *>(info[0].child[0].val.c_str())),
-                  reinterpret_cast<LPSTR>(const_cast<char *>(info[0].child[0].child[0].val.c_str())),
-                  NULL, "/C=cn/ST=hn/L=cs/O=sangfor/OU=ssl/CN=ssl/emailAddress=aaa@qq.com"));
+                  LIB_PATH,
+                  reinterpret_cast<LPSTR>(
+                      const_cast<char *>(info[0].vcDevs[0].devName.c_str())),
+                  reinterpret_cast<LPSTR>(const_cast<char *>(
+                      info[0].vcDevs[0].vcApps[0].appName.c_str())),
+                  reinterpret_cast<LPSTR>(const_cast<char *>(
+                      info[0].vcDevs[0].vcApps[0].vcCons[0].conName.c_str())),
+                  NULL,
+                  "/C=cn/ST=hn/L=cs/O=sangfor/OU=ssl/CN=ssl/"
+                  "emailAddress=aaa@qq.com"));
 }

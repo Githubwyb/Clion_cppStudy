@@ -18,19 +18,35 @@
 #include "skf.h"
 
 #if WIN32
+#ifdef SKFAPI_EXPORT
 #define EXPORT_API __declspec(dllexport)
+#else
+#define EXPORT_API __declspec(dllimport)
+#endif
 #else
 #define EXPORT_API __attribute__((visibility("default")))
 #endif
 
-typedef struct StrTreeNode {
-    std::string val;
-    std::vector<StrTreeNode> child;
+typedef struct _UKEY_CON_ {
+    std::string conName;
+    std::string subject;
+    std::string issuer;
+} UkeyCon;
 
-    StrTreeNode();
-    StrTreeNode(std::string ival, std::vector<StrTreeNode> ichild)
-        : val(ival), child(ichild) {}
-} StrTreeNode;
+typedef struct _UKEY_APP_ {
+    std::string appName;
+    std::vector<UkeyCon> vcCons;
+} UkeyApp;
+
+typedef struct _UKEY_DEV_ {
+    std::string devName;
+    std::vector<UkeyApp> vcApps;
+} UkeyDev;
+
+typedef struct _UKEY_INFO_ {
+    std::string strPath;
+    std::vector<UkeyDev> vcDevs;
+} UkeyInfo;
 
 // openssl引擎配置类，可通过此类配置引擎
 class EXPORT_API LibSkf {
@@ -73,7 +89,7 @@ class EXPORT_API LibSkfUtils {
      * @return int SAR错误码，0成功，其他失败
      */
     static int enumAllInfo(const std::vector<std::string> &libPath,
-                           std::vector<StrTreeNode> &devInfoList);
+                           std::vector<UkeyInfo> &ukeyInfos);
 
     /**
      * @brief 检查证书是否匹配ca
@@ -94,6 +110,10 @@ class EXPORT_API LibSkfUtils {
 // openssl引擎调用的函数，使用C函数传递出去
 extern "C" EXPORT_API int sm2DoSign(const unsigned char *dgst, int dgst_len,
                                     unsigned char r[32], unsigned char s[32]);
+extern "C" EXPORT_API int sm2Verify(const unsigned char *dgst, int dgst_len,
+                                    unsigned char x[32], unsigned char y[32],
+                                    unsigned char r[32], unsigned char s[32]);
+
 // extern "C" EXPORT_API int genRandom(unsigned char *buf, int num);
 extern "C" EXPORT_API int isEngineInit();
 extern "C" EXPORT_API int getSm2SignPubkey(unsigned char ecc_x[32],

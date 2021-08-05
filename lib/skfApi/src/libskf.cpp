@@ -120,14 +120,19 @@ void LibSkf::uninitEngine() {
 }
 
 int LibSkfUtils::enumAllInfo(const std::vector<std::string> &libPath,
-                             std::vector<StrTreeNode> &devInfoList) {
+                             std::vector<UkeyInfo> &ukeyInfos) {
     SKFApi skfApi = SKFApi();
-    devInfoList.clear();
+    ukeyInfos.clear();
     for (const auto &lib : libPath) {
-        std::vector<StrTreeNode> devs;
+        UkeyInfo ukey;
+        ukey.strPath = lib;
+
         skfApi.initApi(lib.c_str());
-        skfApi.enumAllInfo(devs);
-        devInfoList.insert(devInfoList.end(), devs.begin(), devs.end());
+        skfApi.enumAllInfo(ukey.vcDevs);
+
+        if (ukey.vcDevs.size() > 0) {
+            ukeyInfos.emplace_back(ukey);
+        }
     }
     return SAR_OK;
 }
@@ -163,8 +168,8 @@ int LibSkfUtils::checkCertByCAIssuer(const std::string &libPath, LPSTR devName,
 }
 
 int isEngineInit() {
-    const char *operation = "isEngineInit";
-    LOG_DEBUG("%s", operation);
+    // const char *operation = "isEngineInit";
+    // LOG_DEBUG("%s", operation);
     return s_usbKey.devHandle != NULL && s_usbKey.appHandle != NULL &&
            s_usbKey.conHandle != NULL;
 }
@@ -196,6 +201,37 @@ int sm2DoSign(const unsigned char *dgst, int dgst_len, unsigned char r[32],
         memcpy(&r[0], &signature.r[32], 32);
         memcpy(&s[0], &signature.s[32], 32);
     } while (false);
+
+    return (rv == SAR_OK);
+}
+
+int sm2Verify(const unsigned char *dgst, int dgst_len, unsigned char x[32],
+              unsigned char y[32], unsigned char r[32], unsigned char s[32]) {
+    const char *operation = "sm2Verify";
+    LOG_DEBUG("%s", operation);
+    ULONG rv;
+    ECCPUBLICKEYBLOB PubKey;
+    ECCSIGNATUREBLOB signature;
+    ULONG ulDataLen = dgst_len;
+
+    memset(&PubKey, 0x00, sizeof(PubKey));
+    memset(&signature, 0x00, sizeof(ECCSIGNATUREBLOB));
+
+    PubKey.BitLen = 256;
+    memcpy(&PubKey.XCoordinate[32], &x[0], 32);
+    memcpy(&PubKey.YCoordinate[32], &y[0], 32);
+
+    memcpy(&signature.r[32], &r[0], 32);
+    memcpy(&signature.s[32], &s[0], 32);
+
+    rv = s_skfApi.ECCVerify(s_usbKey.devHandle, &PubKey, (BYTE *)dgst,
+                            ulDataLen, &signature);
+    if (rv != SAR_OK) {
+        fprintf(stderr, "[sm2_do_verify] SKF_ECCVerify failed %d \n", rv);
+        goto __end;
+    }
+
+__end:
 
     return (rv == SAR_OK);
 }
@@ -288,12 +324,16 @@ int test_init() {
         return 1;
     }
     LibSkfUtils skfUtils;
-    std::vector<StrTreeNode> info;
+    std::vector<UkeyInfo> info;
     skfUtils.enumAllInfo({LIB_PATH}, info);
     LibSkf::initApi(LIB_PATH);
-    LibSkf::initEngine(reinterpret_cast<LPSTR>(const_cast<char *>(info[0].val.c_str())),
-                       reinterpret_cast<LPSTR>(const_cast<char *>(info[0].child[0].val.c_str())),
-                       reinterpret_cast<LPSTR>(const_cast<char *>(info[0].child[0].child[0].val.c_str())),
-                       "123456");
+    LibSkf::initEngine(
+        reinterpret_cast<LPSTR>(
+            const_cast<char *>(info[0].vcDevs[0].devName.c_str())),
+        reinterpret_cast<LPSTR>(
+            const_cast<char *>(info[0].vcDevs[0].vcApps[0].appName.c_str())),
+        reinterpret_cast<LPSTR>(const_cast<char *>(
+            info[0].vcDevs[0].vcApps[0].vcCons[0].conName.c_str())),
+        "123456");
     return 1;
 }

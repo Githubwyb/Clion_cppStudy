@@ -9,8 +9,8 @@
 /makefiles/*
 !/makefiles/Makefile.*
 
-# includes
-!/includes/
+# include
+!/include/
 
 # src
 !/src/
