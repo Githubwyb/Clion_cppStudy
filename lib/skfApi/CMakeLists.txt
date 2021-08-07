@@ -35,3 +35,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OPENSSL_LIBRARIES}
     # spd_log
 )
+
+if (UNIX)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        dl
+    )
+endif (UNIX)

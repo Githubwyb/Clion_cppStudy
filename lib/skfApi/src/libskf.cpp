@@ -17,106 +17,36 @@
 #include "internal/platform.h"
 #include "log.hpp"
 
-typedef struct Usbkey {
-    std::string certPwd;
-    DEVHANDLE devHandle;
-    HAPPLICATION appHandle;
-    HCONTAINER conHandle;
-
-    Usbkey() : certPwd(""), devHandle(NULL), appHandle(NULL), conHandle(NULL) {}
-} Usbkey;
-
 // 给openssl调用的api接口
 static SKFApi s_skfApi = SKFApi();
 // 动态库储存的usbkey的handle
 static Usbkey s_usbKey;
 
-static void closeUsbkey(const SKFApi &api, Usbkey &usbKey) {
-    if (usbKey.conHandle != NULL) {
-        api.closeContainer(usbKey.conHandle);
-        usbKey.conHandle = NULL;
-    }
-
-    if (usbKey.appHandle != NULL) {
-        api.closeApp(usbKey.appHandle);
-        usbKey.appHandle = NULL;
-    }
-
-    if (usbKey.devHandle != NULL) {
-        api.disConnectDev(usbKey.devHandle);
-        usbKey.devHandle = NULL;
-    }
-}
-
-/**
- * @brief 打开一个usbkey
- *
- * @param devName [IN]设备名称
- * @param appName [IN]app名称
- * @param conName [IN]container名称
- * @param certPwd [IN]pin，为NULL将不校验pin
- * @param api [IN]初始化好的api
- * @param usbKey [OUT]各种打开后的句柄
- * @return int SAR错误码，0成功，其他失败
- */
-static int openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName,
-                      const char *certPwd, const SKFApi &api, Usbkey &usbKey) {
-    const char *operation = "openUsbkey";
-    LOG_DEBUG("[%s] devName %s, appName %s, conName %s", operation, devName,
-              appName, conName);
-    ULONG rv;
-    // 关掉上一次的usbkey
-    closeUsbkey(api, usbKey);
-    do {
-        rv = api.connectDev(devName, usbKey.devHandle);
-        if (rv != SAR_OK) {
-            LOG_ERROR("connectDev failed, err 0x%x, dev %s", rv, devName);
-            break;
-        }
-        rv = api.openApp(appName, usbKey.devHandle, usbKey.appHandle);
-        if (rv != SAR_OK) {
-            LOG_ERROR("openApp failed, err 0x%x, app %s", rv, appName);
-            break;
-        }
-
-        // 某些情况可以不需要输入pin就可以执行
-        if (certPwd != NULL) {
-            rv = api.verifyPin(usbKey.appHandle, certPwd);
-            if (rv != SAR_OK) {
-                LOG_ERROR("verify failed, err 0x%x", rv);
-                break;
-            }
-            usbKey.certPwd = certPwd;
-        }
-        rv = api.openContainer(conName, usbKey.appHandle, usbKey.conHandle);
-        if (rv != SAR_OK) {
-            LOG_ERROR("openContainer failed, err 0x%x, conName %s", rv,
-                      conName);
-            break;
-        }
-        return SAR_OK;
-    } while (false);
-
-    closeUsbkey(api, usbKey);
-    return rv;
-}
-
 int LibSkf::initApi(const char *libPath) {
+    if (libPath == NULL) {
+        LOG_ERROR("libPath is null");
+        return SAR_FAIL;
+    }
     LOG_DEBUG("initApi, libPath %s", libPath);
-    closeUsbkey(s_skfApi, s_usbKey);
+    s_skfApi.closeUsbkey(s_usbKey);
     return s_skfApi.initApi(libPath);
 }
 
 int LibSkf::initEngine(LPSTR devName, LPSTR appName, LPSTR conName,
                        const char *certPwd) {
+    if (devName == NULL || appName == NULL || conName == NULL ||
+        certPwd == NULL) {
+        LOG_ERROR("param invalid, please check param");
+        return SAR_FAIL;
+    }
     LOG_DEBUG("initEngine, devName %s, appName %s, conName %s", devName,
               appName, conName);
-    return openUsbkey(devName, appName, conName, certPwd, s_skfApi, s_usbKey);
+    return s_skfApi.openUsbkey(devName, appName, conName, certPwd, s_usbKey);
 }
 
 void LibSkf::uninitEngine() {
     LOG_DEBUG("uninitEngine");
-    closeUsbkey(s_skfApi, s_usbKey);
+    s_skfApi.closeUsbkey(s_usbKey);
 }
 
 int LibSkfUtils::enumAllInfo(const std::vector<std::string> &libPath,
@@ -144,6 +74,10 @@ int LibSkfUtils::checkCertByCAIssuer(const std::string &libPath, LPSTR devName,
     const char *operation = "checkCertByCAIssuer";
     LOG_DEBUG("[%s] devName %s, appName %s, conName %s", operation, devName,
               appName, conName);
+    if (devName == NULL || appName == NULL || conName == NULL) {
+        LOG_ERROR("param invalid, please check param");
+        return SAR_FAIL;
+    }
     ULONG rv;
     Usbkey usbkey;
     SKFApi skfApi = SKFApi();
@@ -154,7 +88,7 @@ int LibSkfUtils::checkCertByCAIssuer(const std::string &libPath, LPSTR devName,
             break;
         }
 
-        rv = openUsbkey(devName, appName, conName, certPwd, skfApi, usbkey);
+        rv = skfApi.openUsbkey(devName, appName, conName, certPwd, usbkey);
         if (rv != SAR_OK) {
             LOG_ERROR("[%s] openUsbkey failed", operation);
             break;
@@ -163,7 +97,7 @@ int LibSkfUtils::checkCertByCAIssuer(const std::string &libPath, LPSTR devName,
         rv = skfApi.checkCertByCAIssuer(usbkey.conHandle, issuer.c_str());
         LOG_DEBUG("[%s] check ret %d", operation, rv);
     } while (false);
-    closeUsbkey(skfApi, usbkey);
+    skfApi.closeUsbkey(usbkey);
     return rv;
 }
 
@@ -209,6 +143,10 @@ int sm2Verify(const unsigned char *dgst, int dgst_len, unsigned char x[32],
               unsigned char y[32], unsigned char r[32], unsigned char s[32]) {
     const char *operation = "sm2Verify";
     LOG_DEBUG("%s", operation);
+    if (!isEngineInit()) {
+        LOG_ERROR("[%s] failed, engine not init", operation);
+        return 0;
+    }
     ULONG rv;
     ECCPUBLICKEYBLOB PubKey;
     ECCSIGNATUREBLOB signature;
@@ -227,7 +165,7 @@ int sm2Verify(const unsigned char *dgst, int dgst_len, unsigned char x[32],
     rv = s_skfApi.ECCVerify(s_usbKey.devHandle, &PubKey, (BYTE *)dgst,
                             ulDataLen, &signature);
     if (rv != SAR_OK) {
-        fprintf(stderr, "[sm2_do_verify] SKF_ECCVerify failed %d \n", rv);
+        LOG_ERROR("[sm2_do_verify] SKF_ECCVerify failed 0x%x", rv);
         goto __end;
     }
 

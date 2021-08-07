@@ -1,7 +1,7 @@
 /**
- * @file skf_win.h
+ * @file skf_base.h
  * @author wangyubo (18433@sangfor.com)
- * @brief skf windows接口
+ * @brief skf基类接口
  * @version 0.1
  * @date 2021-07-20
  *
@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 
-#include "baseInstance.hpp"
 #include "libskf/libskf.h"
 #include "libskf/skf.h"
 
@@ -198,6 +197,15 @@ typedef enum CertType {
     CertType_ENCRYPT,  // 加密证书
 } CertType;
 
+typedef struct Usbkey {
+    std::string certPwd;
+    DEVHANDLE devHandle;
+    HAPPLICATION appHandle;
+    HCONTAINER conHandle;
+
+    Usbkey() : certPwd(""), devHandle(NULL), appHandle(NULL), conHandle(NULL) {}
+} Usbkey;
+
 // skf基类，用于定义一些通用接口
 class SKFApiBase {
    public:
@@ -216,7 +224,7 @@ class SKFApiBase {
      * @param devHandle [OUT]连接成功的句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int connectDev(LPSTR devName, DEVHANDLE& devHandle) const;
+    virtual int connectDev(LPSTR devName, DEVHANDLE& devHandle) const;
 
     /**
      * @brief 断开设备连接
@@ -224,7 +232,7 @@ class SKFApiBase {
      * @param devHandle [IN]设备连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int disConnectDev(DEVHANDLE devHandle) const;
+    virtual int disConnectDev(DEVHANDLE devHandle) const;
 
     /**
      * @brief 打开app，根据设备句柄和名称
@@ -234,8 +242,8 @@ class SKFApiBase {
      * @param appHandle [OUT]app连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int openApp(LPSTR appName, DEVHANDLE devHandle,
-                HAPPLICATION& appHandle) const;
+    virtual int openApp(LPSTR appName, DEVHANDLE devHandle,
+                        HAPPLICATION& appHandle) const;
 
     /**
      * @brief 关闭app
@@ -243,7 +251,7 @@ class SKFApiBase {
      * @param appHandle [IN]app连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int closeApp(HAPPLICATION appHandle) const;
+    virtual int closeApp(HAPPLICATION appHandle) const;
 
     /**
      * @brief 打开container
@@ -253,16 +261,8 @@ class SKFApiBase {
      * @param conHandle [OUT]container连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int openContainer(LPSTR conName, HAPPLICATION appHandle,
-                      HCONTAINER& conHandle) const;
-
-    int createContainer(LPSTR conName, HAPPLICATION appHandle,
-                        HCONTAINER& conHandle) const;
-
-    int deleteContainer(HAPPLICATION hApplication, LPSTR szContainerName) const;
-
-    int importCertificate(HCONTAINER conHandle, BOOL bSignFlag,
-                          const char* certPath) const;
+    virtual int openContainer(LPSTR conName, HAPPLICATION appHandle,
+                              HCONTAINER& conHandle) const;
 
     /**
      * @brief 关闭container
@@ -270,7 +270,7 @@ class SKFApiBase {
      * @param conHandle [IN]container连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int closeContainer(HCONTAINER conHandle) const;
+    virtual int closeContainer(HCONTAINER conHandle) const;
 
     /**
      * @brief 校验pin
@@ -279,48 +279,42 @@ class SKFApiBase {
      * @param pin [IN]pin密码
      * @return int SAR错误码，0成功，其他失败
      */
-    int verifyPin(HAPPLICATION appHandle, const std::string& pin) const;
+    virtual int verifyPin(HAPPLICATION appHandle, const std::string& pin) const;
 
     /**
-     * @brief 枚举所有的app
+     * @brief 打开一个usbkey
      *
-     * @param szList
-     * @param devName
-     * @return ULONG
+     * @param devName [IN]设备名称
+     * @param appName [IN]app名称
+     * @param conName [IN]container名称
+     * @param certPwd [IN]pin，为NULL将不校验pin
+     * @param usbKey [OUT]各种打开后的句柄
+     * @return int SAR错误码，0成功，其他失败
      */
-    ULONG enumAppByDevName(std::vector<std::string>& szList, LPSTR devName);
+    int openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName,
+                   const char* certPwd, Usbkey& usbKey) const;
 
-    /**
-     * @brief 枚举所有的Container
-     *
-     * @param pszList
-     * @return ULONG
-     */
-    ULONG enumContainer(std::vector<std::string>& pszList);
+    void closeUsbkey(Usbkey& usbKey) const;
 
-    int loadSm2Pubkey(unsigned char* sm2_x, unsigned char* sm2_y);
-    int loadRsaPubkey(unsigned char* Modulus, unsigned char* PublicExponent);
+    // virtual int doRsaSign(const unsigned char* dgst, int dgst_len, unsigned
+    // char* sign,
+    //              unsigned int* signLen);
 
-    int loadCert(unsigned char* cert, ULONG* len);
-    int doSign(const unsigned char* dgst, int dgst_len, unsigned char r[32],
-               unsigned char s[32]);
-    int doRsaSign(const unsigned char* dgst, int dgst_len, unsigned char* sign,
-                  unsigned int* signLen);
+    int enumAllInfo(std::vector<UkeyDev>& devInfoList) const;
 
-    int enumAllInfo(std::vector<UkeyDev>& devInfoList);
+    virtual int ECCSignData(HCONTAINER conHandle, BYTE* pbData, ULONG ulDataLen,
+                            PECCSIGNATUREBLOB pSignature) const;
+    virtual int ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB* pECCPubKeyBlob,
+                          BYTE* pbData, ULONG ulDataLen,
+                          ECCSIGNATUREBLOB* pSignature) const;
 
-    int ECCSignData(HCONTAINER conHandle, BYTE* pbData, ULONG ulDataLen,
-                    PECCSIGNATUREBLOB pSignature);
-    int ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-                  BYTE* pbData, ULONG ulDataLen, ECCSIGNATUREBLOB* pSignature);
+    // virtual int GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen);
+    virtual int ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag,
+                                BYTE* pbBlob, ULONG* pulBlobLen) const;
+    virtual int ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag,
+                                  BYTE* pbCert, ULONG* pulCertLen) const;
 
-    // int GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen);
-    int ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbBlob,
-                        ULONG* pulBlobLen);
-    int ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbCert,
-                          ULONG* pulCertLen);
-
-    int checkCertByCAIssuer(HCONTAINER hContainer, const char* Issuer);
+    int checkCertByCAIssuer(HCONTAINER hContainer, const char* Issuer) const;
 
    protected:
     /**
@@ -339,16 +333,27 @@ class SKFApiBase {
      * @param devNameList [OUT]设备名称列表
      * @return int SAR错误码，0成功，其他失败
      */
-    int enumDev(std::vector<std::string>& devNameList);
+    virtual int enumDev(std::vector<std::string>& devNameList) const;
 
     /**
      * @brief 枚举所有的app
      *
-     * @param szList
-     * @param devHandle
+     * @param devName [IN]设备名称
+     * @param appNameList [OUT]app名字列表
      * @return ULONG
      */
-    ULONG enumApp(std::vector<std::string>& szList, DEVHANDLE& devHandle);
+    ULONG enumAppByDevName(LPSTR devName,
+                           std::vector<std::string>& appNameList) const;
+
+    /**
+     * @brief 枚举所有的app
+     *
+     * @param devHandle [IN]设备句柄
+     * @param szList [OUT]app名字列表
+     * @return ULONG
+     */
+    virtual ULONG enumApp(DEVHANDLE devHandle,
+                          std::vector<std::string>& szList) const;
 
     /**
      * @brief
@@ -359,7 +364,7 @@ class SKFApiBase {
      * @return int SAR错误码，0成功，其他失败
      */
     int enumContainerByAppName(LPSTR appName, DEVHANDLE devHandle,
-                               std::vector<std::string>& conNameList);
+                               std::vector<std::string>& conNameList) const;
     /**
      * @brief 枚举所有容器
      *
@@ -367,8 +372,8 @@ class SKFApiBase {
      * @param conNameList
      * @return int SAR错误码，0成功，其他失败
      */
-    int enumContainer(HAPPLICATION appHandle,
-                      std::vector<std::string>& conNameList);
+    virtual int enumContainer(HAPPLICATION appHandle,
+                              std::vector<std::string>& conNameList) const;
 
     /**
      * @brief Get the Cert By Container Name
@@ -380,7 +385,7 @@ class SKFApiBase {
      * @return int SAR错误码，0成功，其他失败
      */
     int getCertByContainerName(LPSTR conName, HAPPLICATION appHandle,
-                               CertType type, std::vector<BYTE>& cert);
+                               CertType type, std::vector<BYTE>& cert) const;
 
     /**
      * @brief Get the Cert By Container
@@ -390,24 +395,10 @@ class SKFApiBase {
      * @param cert [OUT]证书内容
      * @return int SAR错误码，0成功，其他失败
      */
-    int getCertByContainer(HCONTAINER conHandle, CertType type,
-                           std::vector<BYTE>& cert);
+    virtual int getCertByContainer(HCONTAINER conHandle, CertType type,
+                                   std::vector<BYTE>& cert) const;
 };
 
-#if 0
-// 新加的平台，使用此宏定义继承关系
-#define INHERIT_SKF_BASE(name)                               \
-    class SKFApi##name : public SKFApiBase,                  \
-                         public BaseInstance<SKFApi##name> { \
-       public:                                               \
-        ~SKFApi##name();                                     \
-        int initApi(const char*);                            \
-                                                             \
-       private:                                              \
-        libHandleType m_libHandle;                           \
-    };                                                       \
-    typedef SKFApi##name SKFApi
-#else
 // 新加的平台，使用此宏定义继承关系
 #define INHERIT_SKF_BASE(name, libHandleType) \
     class SKFApi##name : public SKFApiBase {  \
@@ -419,6 +410,5 @@ class SKFApiBase {
         libHandleType m_libHandle = NULL;     \
     };                                        \
     typedef SKFApi##name SKFApi
-#endif
 
 #endif /* pFun_SKF_BASE_H */

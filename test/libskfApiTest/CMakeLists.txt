@@ -2,8 +2,8 @@ SET(TEST_BIN_NAME "libskfApi_tst")
 
 SET(SRC_FILES)
 AUX_SOURCE_DIRECTORY(. SRC_FILES)
-get_target_property(SRC_DIR skfApi SOURCE_DIR)
-AUX_SOURCE_DIRECTORY(${SRC_DIR}/../common SRC_FILES)
+# get_target_property(SKFAPI_SRC_DIR skfApi SOURCE_DIR)
+# AUX_SOURCE_DIRECTORY(${SKFAPI_SRC_DIR}/src SRC_FILES)
 
 find_package(OpenSSL REQUIRED)
 
@@ -11,6 +11,7 @@ add_executable(${TEST_BIN_NAME} ${SRC_FILES})
 target_include_directories(
     ${TEST_BIN_NAME} PRIVATE
     ${OPENSSL_INCLUDE_DIR}
+    ${SKFAPI_SRC_DIR}/include
 )
 
 # 使用spdlog作为日志库
@@ -25,6 +26,7 @@ target_link_libraries(
     spdlog
     gtest
     gtest_main
+    gmock
     # 系统库
     # pthread
     # dl
@@ -32,6 +34,12 @@ target_link_libraries(
     skfApi
     ${OPENSSL_LIBRARIES}
 )
+
+if (UNIX)
+    target_link_libraries(${TEST_BIN_NAME} PRIVATE
+        dl
+    )
+endif (UNIX)
 # message(${CMAKE_BINARY_DIR})
 # add_custom_command(TARGET ${TEST_BIN_NAME}
 #                     POST_BUILD

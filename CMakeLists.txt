@@ -22,13 +22,14 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # 设置选项
 option(TEST "Generate test, default is ON" ON)
-option(RELEASE "Build release, default is OFF" OFF)
 
-if(RELEASE)
-   SET(CMAKE_BUILD_TYPE "RELEASE" CACHE STRING "" FORCE)
-else(RELEASE)
-   SET(CMAKE_BUILD_TYPE "DEBUG" CACHE STRING "" FORCE)
-endif(RELEASE)
+# 使用 -DCMAKE_BUILD_TYPE:STRING=RELEASE 来指定，默认为RELEASE
+# option(RELEASE "Build release, default is OFF" OFF)
+# if(RELEASE)
+#    SET(CMAKE_BUILD_TYPE "RELEASE")
+# else(RELEASE)
+#    SET(CMAKE_BUILD_TYPE "DEBUG")
+# endif(RELEASE)
 
 # 设置编译二进制名字
 SET(BIN_NAME run)
