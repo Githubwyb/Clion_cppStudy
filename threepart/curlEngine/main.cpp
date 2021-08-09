@@ -19,13 +19,17 @@ size_t curlWriteFunction(void *ptr, size_t size /*always==1*/, size_t nmemb,
 #define LIB_PATH "C:\\Windows\\System32\\" LIB_NAME
 static int initLibSkf() {
     LibSkfUtils skfUtils;
-    std::vector<StrTreeNode> info;
+    std::vector<UkeyInfo> info;
     skfUtils.enumAllInfo({LIB_PATH}, info);
     LibSkf::initApi(LIB_PATH);
-    LibSkf::initEngine(const_cast<LPSTR>(info[0].val.c_str()),
-                       const_cast<LPSTR>(info[0].child[0].val.c_str()),
-                       const_cast<LPSTR>(info[0].child[0].child[0].val.c_str()),
-                       "123456");
+    LibSkf::initEngine(
+        reinterpret_cast<LPSTR>(
+            const_cast<char *>(info[0].vcDevs[0].devName.c_str())),
+        reinterpret_cast<LPSTR>(
+            const_cast<char *>(info[0].vcDevs[0].vcApps[0].appName.c_str())),
+        reinterpret_cast<LPSTR>(const_cast<char *>(
+            info[0].vcDevs[0].vcApps[0].vcCons[0].conName.c_str())),
+        "123456");
     return 0;
 }
 
@@ -74,8 +78,9 @@ int main(int argc, char *argv[]) {
     curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_MAX_TLSv1_1);
+    // curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_MAX_TLSv1_1);
     curl_easy_setopt(curl, CURLOPT_SSLENGINE, "skf");
+    curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
 
     curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslctxfun);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 3 * 1000);

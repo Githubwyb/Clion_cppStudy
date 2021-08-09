@@ -7,3 +7,6 @@
 [submodule "threepart/gtest"]
 	path = threepart/gtest
 	url = git@gitee.com:giteewyb/googletest.git
+[submodule "threepart/curl"]
+	path = threepart/curl
+	url = git@gitee.com:giteewyb/curl.git
