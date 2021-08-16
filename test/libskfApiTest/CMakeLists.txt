@@ -26,7 +26,7 @@ target_link_libraries(
     spdlog
     gtest
     gtest_main
-    gmock
+    # gmock
     # 系统库
     # pthread
     # dl

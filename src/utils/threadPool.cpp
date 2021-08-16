@@ -37,7 +37,7 @@ void threadPool::init(int threadNum, string name) {
         m_threadNum = threadNum;
         m_poolName = name;
     }
-    LOG_INFO("%s start thread num %d", m_poolName.c_str(), m_threadNum);
+    LOG_INFO("{} start thread num {}", m_poolName.c_str(), m_threadNum);
 }
 
 void threadPool::run() {

@@ -43,6 +43,33 @@ static StrList getNameListFromLPSTR(const LPSTR nameList, const ULONG size) {
     return result;
 }
 
+#define check0_f(x) \
+    ((x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F'))
+/**
+ * @brief 将"\\xe9\\xe8"转成"\xe9\xe8"
+ *
+ * @param str 输入字符串
+ * @return std::string 输出字符串，如果不符合格式将只输出符合的前几位
+ */
+std::string convertStrToByte(const std::string &str) {
+    std::string result;
+    size_t index = 0;
+    size_t strLen = str.length();
+    while (index < strLen) {
+        char tmp[2] = {0};
+        // 满足条件转义，不满足条件，追加
+        if (str[index] == '\\' && index + 3 < strLen && str[index + 1] == 'x' &&
+            check0_f(str[index + 2]) && check0_f(str[index + 3]) &&
+            sscanf(&(str.front()) + index, "\\x%02hhx", &tmp) == 1) {
+            result += tmp;
+            index += 4;
+            continue;
+        }
+        result += str[index++];
+    }
+    return result;
+}
+
 static int check_cert_issuer(const BYTE *certInfo, ULONG ulCertLen,
                              const char *certIssuer) {
     assert(certInfo != NULL);
@@ -258,7 +285,8 @@ static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
                 userName =
                     allSubject.substr(iStart, allSubject.size() - iStart);
         }
-
+        // 中文情况下为\\xe9的方式，需要转成\xe9
+        userName = convertStrToByte(userName);
         if (userName.length() < 1) userName = pszSubjectName;
         bRet = true;
     } while (false);

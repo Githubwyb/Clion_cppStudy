@@ -6,6 +6,8 @@
  * @date 2021-01-06
  */
 
+#ifdef __linux__
+
 #include "epollWorker.hpp"
 
 #include <arpa/inet.h>
@@ -344,3 +346,4 @@ void clientRun() {
     return;
 }
 
+#endif /* __linux__ */

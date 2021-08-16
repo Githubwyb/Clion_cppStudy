@@ -9,11 +9,13 @@
  *
  */
 #include <string.h>
+
 #include "gtest/gtest.h"
 // #include "gmock/gmock.h"
 #include "libskf/libskf.h"
 #include "log.hpp"
 
+// static const char *s_libPath = "D:\\中文测试目录\\ShuttleCsp11_3000GM.dll";
 static const char *s_libPath = "C:\\Windows\\System32\\ShuttleCsp11_3000GM.dll";
 static LPSTR s_devName = NULL;
 static LPSTR s_appName = NULL;
@@ -180,7 +182,7 @@ TEST_F(MylibTestClass, LibSkf_initEngine) {
     // 没有initApi
     EXPECT_EQ(SAR_FAIL, LibSkf::initEngine(devName, appName, conName, pin));
     // 输入不正确
-    EXPECT_EQ(SAR_OK, LibSkf::initApi(s_libPath));
+    ASSERT_EQ(SAR_OK, LibSkf::initApi(s_libPath));
     EXPECT_EQ(SAR_DEVICE_REMOVED,
               LibSkf::initEngine(devName, appName, conName, pin));
     EXPECT_EQ(SAR_APPLICATION_NOT_EXISTS,
@@ -214,6 +216,8 @@ TEST_F(MylibTestClass, LibSkfUtils_enumAllInfo) {
     EXPECT_EQ(SAR_OK, LibSkfUtils::enumAllInfo({s_libPath}, info));
     ASSERT_EQ(1, info.size());
     EXPECT_STREQ(s_libPath, info[0].strPath.c_str());
+
+    printDevInfo(info[0]);
     bool check = false;
     for (const auto &dev : info[0].vcDevs) {
         if (dev.devName != std::string(reinterpret_cast<char *>(s_devName))) {
@@ -330,7 +334,7 @@ TEST_F(MylibTestClass, openssl) {
     EXPECT_EQ(0, isEngineInit());
 
     // engine没有init
-    EXPECT_EQ(SAR_OK, LibSkf::initApi(s_libPath));
+    ASSERT_EQ(SAR_OK, LibSkf::initApi(s_libPath));
     EXPECT_EQ(0, sm2DoSign(dgst, sizeof(dgst) - 1, r, s));
     EXPECT_EQ(0, sm2Verify(dgst, sizeof(dgst) - 1, x, y, r, s));
     EXPECT_EQ(0, getSm2SignPubkey(x, y));

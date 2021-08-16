@@ -14,6 +14,7 @@
 #include "internal/skf_win.h"
 
 #include <assert.h>
+#include <atlconv.h>
 
 #include <map>
 #include <string>
@@ -41,8 +42,27 @@ SKFApiWin::~SKFApiWin() {
     LOG_DEBUG("~SKFApiWin");
 }
 
+static std::string UTF8ToGBK(const std::string &strUTF8) {
+    int len = MultiByteToWideChar(CP_UTF8, 0, strUTF8.c_str(), -1, NULL, 0);
+    wchar_t *wszGBK = new wchar_t[len + 1];
+    wmemset(wszGBK, 0, len + 1);
+    MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)strUTF8.c_str(), -1, wszGBK, len);
+
+    len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+    char *szGBK = new char[len + 1];
+    memset(szGBK, 0, len + 1);
+    WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
+    // strUTF8 = szGBK;
+    std::string strTemp(szGBK);
+    delete[] szGBK;
+    delete[] wszGBK;
+    return strTemp;
+}
+
 int SKFApiWin::initApi(const char *libPath) {
     assert(libPath != NULL);
+    // windows下需要将utf8转成gbk使用
+    auto libPathUTF8 = UTF8ToGBK(libPath);
     bool bNeedBackup = false;
     int rv = SAR_FAIL;
     m_isApiInit = false;
@@ -53,17 +73,17 @@ int SKFApiWin::initApi(const char *libPath) {
         memset(&m_apiHandle, 0, sizeof(m_apiHandle));
     }
 
-    auto iterFind = s_mapCache.find(libPath);
+    auto iterFind = s_mapCache.find(libPathUTF8);
     if (iterFind != s_mapCache.end()) {
         m_libHandle = iterFind->second;
     } else {
-        m_libHandle = LoadLibrary(libPath);
+        m_libHandle = LoadLibrary(libPathUTF8.c_str());
         bNeedBackup = true;
     }
 
     if (m_libHandle == NULL) {
-        LOG_ERROR("Load library failed, errCode %d, path %s", GetLastError(),
-                  libPath);
+        LOG_ERROR("Load library failed, errCode %d, libpath %s",
+                  GetLastError(), libPathUTF8.c_str());
         return SAR_FAIL;
     }
 
@@ -113,8 +133,8 @@ int SKFApiWin::initApi(const char *libPath) {
 
         m_isApiInit = true;
         if (bNeedBackup) {
-            s_mapCache.insert(std::pair<std::string, HMODULE>(
-                (std::string)libPath, m_libHandle));
+            s_mapCache.insert(
+                std::pair<std::string, HMODULE>(libPathUTF8, m_libHandle));
             LOG_INFO("Load library succ, addr=0x%p", (uint64_t)m_libHandle);
         }
 
