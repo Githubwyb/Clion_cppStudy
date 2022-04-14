@@ -9,13 +9,13 @@
  *
  */
 
+#include <algorithm>
+
 #include "internal/skf_base.h"
 
 #include <assert.h>
 #include <openssl/x509.h>
 #include <string.h>
-
-#include <algorithm>
 
 #include "log.hpp"
 
@@ -29,8 +29,8 @@ static StrList getNameListFromLPSTR(const LPSTR nameList, const ULONG size) {
 
     ULONG index = 0;  // 标识当前字符串头部
     while (index < size) {
-        std::string tmp = reinterpret_cast<char *>(nameList) + index;
-        auto nameLen = tmp.length();
+        std::string tmp     = reinterpret_cast<char *>(nameList) + index;
+        auto        nameLen = tmp.length();
         if (nameLen == 0) {
             // 如果没有名字，说明到最后一个了，break掉
             break;
@@ -43,8 +43,7 @@ static StrList getNameListFromLPSTR(const LPSTR nameList, const ULONG size) {
     return result;
 }
 
-#define check0_f(x) \
-    ((x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F'))
+#define check0_f(x) ((x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F'))
 /**
  * @brief 将"\\xe9\\xe8"转成"\xe9\xe8"
  *
@@ -53,14 +52,13 @@ static StrList getNameListFromLPSTR(const LPSTR nameList, const ULONG size) {
  */
 std::string convertStrToByte(const std::string &str) {
     std::string result;
-    size_t index = 0;
-    size_t strLen = str.length();
+    size_t      index  = 0;
+    size_t      strLen = str.length();
     while (index < strLen) {
         char tmp[2] = {0};
         // 满足条件转义，不满足条件，追加
-        if (str[index] == '\\' && index + 3 < strLen && str[index + 1] == 'x' &&
-            check0_f(str[index + 2]) && check0_f(str[index + 3]) &&
-            sscanf(&(str.front()) + index, "\\x%02hhx", &tmp) == 1) {
+        if (str[index] == '\\' && index + 3 < strLen && str[index + 1] == 'x' && check0_f(str[index + 2]) &&
+            check0_f(str[index + 3]) && sscanf(&(str.front()) + index, "\\x%02hhx", &tmp) == 1) {
             result += tmp;
             index += 4;
             continue;
@@ -70,49 +68,68 @@ std::string convertStrToByte(const std::string &str) {
     return result;
 }
 
-static int check_cert_issuer(const BYTE *certInfo, ULONG ulCertLen,
-                             const char *certIssuer) {
+/*
+ * @brief 字符串替换函数
+ * @param strSource 原始字符串
+ * @param strToReplace 需要替换的字符串内容
+ * @param strReplaceAs 替换后的字符串内容
+ * @return 返回完成的字符串
+ */
+std::string &stringReplace(std::string &strSource, const std::string &strToReplace, const std::string &strReplaceAs) {
+    for (std::string::size_type pos(0); pos != std::string::npos; pos += strReplaceAs.length()) {
+        if ((pos = strSource.find(strToReplace, pos)) != std::string::npos)
+            strSource.replace(pos, strToReplace.length(), strReplaceAs);
+        else
+            break;
+    }
+    return strSource;
+}
+
+static int check_cert_issuer(const BYTE *certInfo, ULONG ulCertLen, const char *certIssuer) {
     assert(certInfo != NULL);
-    X509 *pUsrCert = NULL;
-    X509_NAME *pCertIssuer = NULL;
-    BIO *pBio = NULL;
-    char *pszIssuerName = NULL;
-    BOOL bRet = FALSE;
+    X509      *pUsrCert      = NULL;
+    X509_NAME *pCertIssuer   = NULL;
+    BIO       *pBio          = NULL;
+    char      *pszIssuerName = NULL;
+    BOOL       bRet          = FALSE;
     if (certInfo == NULL || ulCertLen == 0)  //|| certIssuer == NULL)
     {
         return 0;
     }
 
-    pBio = BIO_new(BIO_s_mem());
-    if (pBio == NULL) {
-        fprintf(stderr, "BIO_new failed \n");
-        goto END;
-    }
-    BIO_write(pBio, certInfo, ulCertLen);
-    pUsrCert = d2i_X509_bio(pBio, NULL);
-    if (pUsrCert == NULL) {
-        fprintf(stderr, "d2i_X509_bio failed \n");
-        goto END;
-    }
-    pCertIssuer = X509_get_issuer_name(pUsrCert);
-    if (!pCertIssuer) {
-        fprintf(stderr, "X509_get_issuer failed \n");
-        goto END;
-    }
-    pszIssuerName = X509_NAME_oneline(pCertIssuer, NULL, 0);
-    if (!pszIssuerName) {
-        fprintf(stderr, "X509_NAME_oneline failed \n");
-        goto END;
-    }
+    do {
+        pBio = BIO_new(BIO_s_mem());
+        if (pBio == NULL) {
+            fprintf(stderr, "BIO_new failed \n");
+            break;
+        }
+        BIO_write(pBio, certInfo, ulCertLen);
+        pUsrCert = d2i_X509_bio(pBio, NULL);
+        if (pUsrCert == NULL) {
+            fprintf(stderr, "d2i_X509_bio failed \n");
+            break;
+        }
+        pCertIssuer = X509_get_issuer_name(pUsrCert);
+        if (!pCertIssuer) {
+            fprintf(stderr, "X509_get_issuer failed \n");
+            break;
+        }
+        pszIssuerName = X509_NAME_oneline(pCertIssuer, NULL, 0);
+        if (!pszIssuerName) {
+            fprintf(stderr, "X509_NAME_oneline failed \n");
+            break;
+        }
 
-    if (strcmp(certIssuer, pszIssuerName) != 0) {
-        LOG_ERROR("issuer not match");
-        LOG_DEBUG("ukey %s, input %s", pszIssuerName, certIssuer);
-        bRet = FALSE;
-    } else {
-        bRet = TRUE;
-    }
-END:
+        std::string tmpIssuer = convertStrToByte(pszIssuerName);
+        stringReplace(tmpIssuer, ", ", "/");
+        if (strcmp(certIssuer, tmpIssuer.c_str()) != 0) {
+            LOG_WARN("issuer not match, ukey %s, input %s", certIssuer, tmpIssuer.c_str());
+            bRet = FALSE;
+        } else {
+            bRet = TRUE;
+        }
+    } while (0);
+
     if (pBio != NULL) {
         BIO_free(pBio);
     }
@@ -122,13 +139,12 @@ END:
     return bRet;
 }
 
-static int getCertIssuer(const std::vector<BYTE> &certInfo,
-                         std::string &issuer) {
-    X509 *pUsrCert = NULL;
-    X509_NAME *pIssuerName = NULL;
-    BIO *pBio = NULL;
-    char *pszIssuerName = NULL;
-    BOOL bRet = FALSE;
+static int getCertIssuer(const std::vector<BYTE> &certInfo, std::string &issuer) {
+    X509      *pUsrCert      = NULL;
+    X509_NAME *pIssuerName   = NULL;
+    BIO       *pBio          = NULL;
+    char      *pszIssuerName = NULL;
+    BOOL       bRet          = FALSE;
 
     do {
         pBio = BIO_new(BIO_s_mem());
@@ -154,7 +170,7 @@ static int getCertIssuer(const std::vector<BYTE> &certInfo,
         }
 
         issuer = pszIssuerName;
-        bRet = TRUE;
+        bRet   = TRUE;
     } while (false);
     if (pBio != NULL) {
         BIO_free(pBio);
@@ -165,13 +181,12 @@ static int getCertIssuer(const std::vector<BYTE> &certInfo,
     return bRet;
 }
 
-static int getCertSubject(const std::vector<BYTE> &certInfo,
-                          std::string &subject) {
-    X509 *pUsrCert = NULL;
-    X509_NAME *pSubjectName = NULL;
-    BIO *pBio = NULL;
-    char *pszSubjectName = NULL;
-    BOOL bRet = FALSE;
+static int getCertSubject(const std::vector<BYTE> &certInfo, std::string &subject) {
+    X509      *pUsrCert       = NULL;
+    X509_NAME *pSubjectName   = NULL;
+    BIO       *pBio           = NULL;
+    char      *pszSubjectName = NULL;
+    BOOL       bRet           = FALSE;
 
     do {
         pBio = BIO_new(BIO_s_mem());
@@ -197,7 +212,7 @@ static int getCertSubject(const std::vector<BYTE> &certInfo,
         }
 
         subject = pszSubjectName;
-        bRet = TRUE;
+        bRet    = TRUE;
     } while (false);
 
     if (pBio != NULL) BIO_free(pBio);
@@ -206,17 +221,15 @@ static int getCertSubject(const std::vector<BYTE> &certInfo,
     return bRet;
 }
 
-static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
-                                     std::string &userName,
-                                     std::string &issuer) {
-    BIO *pBio = NULL;
-    X509 *pUsrCert = NULL;
-    X509_NAME *pSubjectName = NULL;
-    char *pszSubjectName = NULL;
-    X509_NAME *pIssuerName = NULL;
-    char *pszIssuerName = NULL;
-    ASN1_TIME *pAfterTime = NULL;
-    bool bRet = false;
+static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo, std::string &userName, std::string &issuer) {
+    BIO       *pBio           = NULL;
+    X509      *pUsrCert       = NULL;
+    X509_NAME *pSubjectName   = NULL;
+    char      *pszSubjectName = NULL;
+    X509_NAME *pIssuerName    = NULL;
+    char      *pszIssuerName  = NULL;
+    ASN1_TIME *pAfterTime     = NULL;
+    bool       bRet           = false;
 
     do {
         pBio = BIO_new(BIO_s_mem());
@@ -256,6 +269,7 @@ static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
             break;
         }
         issuer = pszIssuerName;
+        issuer = convertStrToByte(issuer);
 
         // 获取用户名
         pSubjectName = X509_get_subject_name(pUsrCert);
@@ -269,12 +283,11 @@ static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
             break;
         }
 
-        const char userNameSep[] = "CN=";
+        const char  userNameSep[] = "CN=";
         std::string allSubject(pszSubjectName);
         std::string tempSubject(pszSubjectName);
         // 忽略USERNAME_SEP的大小写
-        transform(tempSubject.begin(), tempSubject.end(), tempSubject.begin(),
-                  ::toupper);
+        transform(tempSubject.begin(), tempSubject.end(), tempSubject.begin(), ::toupper);
         int iStart = tempSubject.find(userNameSep);
         if (iStart != std::string::npos) {
             iStart += strlen(userNameSep);
@@ -282,12 +295,16 @@ static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
             if (iEnd != std::string::npos)
                 userName = allSubject.substr(iStart, iEnd - iStart);
             else
-                userName =
-                    allSubject.substr(iStart, allSubject.size() - iStart);
+                userName = allSubject.substr(iStart, allSubject.size() - iStart);
         }
+        if (userName.empty()) userName = pszSubjectName;
+
         // 中文情况下为\\xe9的方式，需要转成\xe9
         userName = convertStrToByte(userName);
-        if (userName.length() < 1) userName = pszSubjectName;
+
+        issuer = convertStrToByte(issuer);
+        // 针对可以设置的内容信息，对内容中的(, ）替换成(/)
+        stringReplace(issuer, ", ", "/");
         bRet = true;
     } while (false);
 
@@ -299,19 +316,16 @@ static bool getCertUserNameAndIssuer(const std::vector<BYTE> &certInfo,
 
 SKFApiBase::~SKFApiBase() { LOG_DEBUG("~SKFApiBase"); }
 
-int SKFApiBase::verifyPin(HAPPLICATION appHandle,
-                          const std::string &pin) const {
+int SKFApiBase::verifyPin(HAPPLICATION appHandle, const std::string &pin) const {
     assert(appHandle != NULL);
     ULONG retry;
     // 传入string，实际只要LPSTR，需要转换
     char *szPin = new char[pin.length() + 1];
     strncpy(szPin, pin.c_str(), pin.length() + 1);
-    ULONG rv = m_apiHandle.pFun_SKF_VerifyPIN(
-        appHandle, USER_TYPE, reinterpret_cast<LPSTR>(szPin), &retry);
+    ULONG rv = m_apiHandle.pFun_SKF_VerifyPIN(appHandle, USER_TYPE, reinterpret_cast<LPSTR>(szPin), &retry);
     delete[] szPin;
     if (rv != SAR_OK) {
-        LOG_ERROR("verify_pin SKF_VerifyPIN, error 0x%x, retry = %u", rv,
-                  retry);
+        LOG_ERROR("verify_pin SKF_VerifyPIN, error %#x, retry = %u", rv, retry);
     }
 
     return rv;
@@ -320,15 +334,15 @@ int SKFApiBase::verifyPin(HAPPLICATION appHandle,
 ULONG SKFApiBase::enumAppByDevName(LPSTR devName, StrList &appNameList) const {
     assert(devName != NULL);
     DEVHANDLE devHandle;
-    ULONG rv = connectDev(devName, devHandle);
+    ULONG     rv = connectDev(devName, devHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("connectDev failed, err 0x%x, dev %s", rv, devName);
+        LOG_ERROR("connectDev failed, err %#x, dev %s", rv, devName);
         return rv;
     }
     rv = enumApp(devHandle, appNameList);
     disConnectDev(devHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("enumApp by devHandle failed, err 0x%x, dev %s", rv, devName);
+        LOG_ERROR("enumApp by devHandle failed, err %#x, dev %s", rv, devName);
         return rv;
     }
     return rv;
@@ -336,13 +350,13 @@ ULONG SKFApiBase::enumAppByDevName(LPSTR devName, StrList &appNameList) const {
 
 // 枚举应用
 ULONG SKFApiBase::enumApp(DEVHANDLE devHandle, StrList &appNameList) const {
-    ULONG len = 0;
+    ULONG len     = 0;
     LPSTR appName = NULL;
 
     // 同样分为两步，第一步获取长度，第二步获取内容
     ULONG rv = m_apiHandle.pFun_SKF_EnumApplication(devHandle, appName, &len);
     if (rv != SAR_OK) {
-        LOG_ERROR("enumApp SKF_EnumApplication error 0x%x", rv);
+        LOG_ERROR("enumApp SKF_EnumApplication error %#x", rv);
         return rv;
     }
 
@@ -354,13 +368,11 @@ ULONG SKFApiBase::enumApp(DEVHANDLE devHandle, StrList &appNameList) const {
         }
         rv = m_apiHandle.pFun_SKF_EnumApplication(devHandle, appName, &len);
         if (rv != SAR_OK) {
-            LOG_ERROR("SKF_EnumApplication error 0x%x", rv);
+            LOG_ERROR("SKF_EnumApplication error %#x", rv);
             break;
         }
 
         appNameList = getNameListFromLPSTR(appName, len);
-        // LOG_DEBUG( "appName: ");
-        // LOG_HEX(appName, len);
     } while (false);
 
     if (appName != NULL) {
@@ -370,28 +382,25 @@ ULONG SKFApiBase::enumApp(DEVHANDLE devHandle, StrList &appNameList) const {
     return rv;
 }
 
-int SKFApiBase::enumContainerByAppName(LPSTR appName, DEVHANDLE devHandle,
-                                       StrList &conNameList) const {
+int SKFApiBase::enumContainerByAppName(LPSTR appName, DEVHANDLE devHandle, StrList &conNameList) const {
     assert(appName != NULL);
     assert(devHandle != NULL);
     HAPPLICATION appHandle;
-    ULONG rv = openApp(appName, devHandle, appHandle);
+    ULONG        rv = openApp(appName, devHandle, appHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("openApp failed, err 0x%x, app %s", rv, appName);
+        LOG_ERROR("openApp failed, err %#x, app %s", rv, appName);
         return rv;
     }
     rv = enumContainer(appHandle, conNameList);
     closeApp(appHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("enumContainer by appHandle failed, err 0x%x, app %s", rv,
-                  appName);
+        LOG_ERROR("enumContainer by appHandle failed, err %#x, app %s", rv, appName);
         return rv;
     }
     return rv;
 }
 
-int SKFApiBase::openContainer(LPSTR conName, HAPPLICATION appHandle,
-                              HCONTAINER &conHandle) const {
+int SKFApiBase::openContainer(LPSTR conName, HAPPLICATION appHandle, HCONTAINER &conHandle) const {
     assert(conName != NULL);
     assert(appHandle != NULL);
     // 所有接口先判断是否初始化api
@@ -400,11 +409,9 @@ int SKFApiBase::openContainer(LPSTR conName, HAPPLICATION appHandle,
         return SAR_FAIL;
     }
 
-    ULONG rv =
-        m_apiHandle.pFun_SKF_OpenContainer(appHandle, conName, &conHandle);
+    ULONG rv = m_apiHandle.pFun_SKF_OpenContainer(appHandle, conName, &conHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_OpenContainer, error, errCode: 0x%x, con %s", rv,
-                  conName);
+        LOG_ERROR("SKF_OpenContainer, error, errCode: %#x, con %s", rv, conName);
     }
     return rv;
 }
@@ -422,22 +429,21 @@ int SKFApiBase::closeContainer(HCONTAINER conHandle) const {
 
     ULONG rv = m_apiHandle.pFun_SKF_CloseContainer(conHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_CloseContainer, error, errCode: 0x%x", rv);
+        LOG_ERROR("SKF_CloseContainer, error, errCode: %#x", rv);
     }
     return rv;
 }
 
-int SKFApiBase::enumContainer(HAPPLICATION appHandle,
-                              StrList &conNameList) const {
+int SKFApiBase::enumContainer(HAPPLICATION appHandle, StrList &conNameList) const {
     assert(appHandle != NULL);
     LPSTR szList = NULL;
-    ULONG rv = SAR_FAIL;
+    ULONG rv     = SAR_FAIL;
     ULONG len;
 
     do {
         rv = m_apiHandle.pFun_SKF_EnumContainer(appHandle, NULL, &len);
         if (rv != SAR_OK) {
-            LOG_ERROR("SKF_EnumContainer error, errCode 0x%x", rv);
+            LOG_ERROR("SKF_EnumContainer error, errCode %#x", rv);
             break;
         }
         szList = (LPSTR)calloc(1, len);
@@ -448,7 +454,7 @@ int SKFApiBase::enumContainer(HAPPLICATION appHandle,
         }
         rv = m_apiHandle.pFun_SKF_EnumContainer(appHandle, szList, &len);
         if (rv != SAR_OK) {
-            LOG_ERROR("SKF_EnumContainer error, errCode: 0x%x", rv);
+            LOG_ERROR("SKF_EnumContainer error, errCode: %#x", rv);
             break;
         }
         conNameList = getNameListFromLPSTR(szList, len);
@@ -462,19 +468,27 @@ int SKFApiBase::enumContainer(HAPPLICATION appHandle,
 }
 
 //对一个摘要数据做签名
-int SKFApiBase::ECCSignData(HCONTAINER conHandle, BYTE *pbData, ULONG ulDataLen,
-                            PECCSIGNATUREBLOB pSignature) const {
+int SKFApiBase::ECCSignData(HCONTAINER conHandle, BYTE *pbData, ULONG ulDataLen, PECCSIGNATUREBLOB pSignature) const {
     assert(conHandle != NULL);
-    return m_apiHandle.pFun_SKF_ECCSignData(conHandle, pbData, ulDataLen,
-                                            pSignature);
+    return m_apiHandle.pFun_SKF_ECCSignData(conHandle, pbData, ulDataLen, pSignature);
 }
 
-int SKFApiBase::ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB *pECCPubKeyBlob,
-                          BYTE *pbData, ULONG ulDataLen,
+int SKFApiBase::ECCVerify(DEVHANDLE         hDev,
+                          ECCPUBLICKEYBLOB *pECCPubKeyBlob,
+                          BYTE             *pbData,
+                          ULONG             ulDataLen,
                           ECCSIGNATUREBLOB *pSignature) const {
     assert(hDev != NULL);
-    return m_apiHandle.pFun_SKF_ECCVerify(hDev, pECCPubKeyBlob, pbData,
-                                          ulDataLen, pSignature);
+    return m_apiHandle.pFun_SKF_ECCVerify(hDev, pECCPubKeyBlob, pbData, ulDataLen, pSignature);
+}
+
+int SKFApiBase::RSASignData(HCONTAINER hContainer,
+                            BYTE      *pbData,
+                            ULONG      ulDataLen,
+                            BYTE      *pbSignature,
+                            ULONG     *pulSignLen) const {
+    assert(hContainer != NULL);
+    return m_apiHandle.pFun_SKF_RSASignData(hContainer, pbData, ulDataLen, pbSignature, pulSignLen);
 }
 
 // int SKFApiBase::GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen)
@@ -484,48 +498,20 @@ int SKFApiBase::ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB *pECCPubKeyBlob,
 //     return m_apiHandle.pFun_SKF_GenRandom(hDev, pbRandom, ulRandomLen);
 // }
 
-int SKFApiBase::ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag,
-                                BYTE *pbBlob, ULONG *pulBlobLen) const {
+int SKFApiBase::ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag, BYTE *pbBlob, ULONG *pulBlobLen) const {
     assert(hContainer != NULL);
-    assert(pbBlob != NULL);
-    return m_apiHandle.pFun_SKF_ExportPublicKey(hContainer, bSignFlag, pbBlob,
-                                                pulBlobLen);
+    return m_apiHandle.pFun_SKF_ExportPublicKey(hContainer, bSignFlag, pbBlob, pulBlobLen);
 }
 
-int SKFApiBase::ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag,
-                                  BYTE *pbCert, ULONG *pulCertLen) const {
+int SKFApiBase::ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag, BYTE *pbCert, ULONG *pulCertLen) const {
     assert(hContainer != NULL);
-    return m_apiHandle.pFun_SKF_ExportCertificate(hContainer, bSignFlag, pbCert,
-                                                  pulCertLen);
+    return m_apiHandle.pFun_SKF_ExportCertificate(hContainer, bSignFlag, pbCert, pulCertLen);
 }
 
-/*
-int SKFApiBase::doRsaSign(const unsigned char *dgst, int dgst_len,
-                          unsigned char *sign, unsigned int *signLen) {
-    ULONG rv = SAR_FAIL;
-
-    rv = openUsbKey();
-    if (rv != SAR_OK) {
-        LOG_ERROR( "openUsbKey failed, errCode: 0x%x", rv);
-        return rv;
-    }
-
-    if (m_conHandle == NULL) {
-        LOG_ERROR( "doSign m_conHandle is NULL");
-        rv = SAR_FAIL;
-        return rv;
-    }
-    //初始大小不能小于密钥长度，否则会报参数错误a000006.
-    *signLen = 1024;
-    rv = m_apiHandle.pFun_SKF_RSASignData(m_conHandle, (BYTE *)dgst, dgst_len,
-                                           (BYTE *)sign, (ULONG *)signLen);
-    if (rv != SAR_OK) {
-        LOG_ERROR( "SKF_ECCSignData failed, errCode: 0x%x", rv);
-        return rv;
-    }
-    return rv;
+int SKFApiBase::GetContainerType(HCONTAINER hContainer, ULONG *pulContainerType) const {
+    assert(hContainer != NULL);
+    return m_apiHandle.pFun_SKF_GetContainerType(hContainer, pulContainerType);
 }
-*/
 
 int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
     int rv = SAR_FAIL;
@@ -539,13 +525,13 @@ int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
         StrList devNameList;
         rv = enumDev(devNameList);
         if (rv != SAR_OK) {
-            LOG_ERROR("EnumDev failed, err 0x%x", rv);
+            LOG_ERROR("EnumDev failed, err %#x", rv);
             break;
         }
 
         devInfoList.clear();
         for (const auto &dev : devNameList) {
-            UkeyDev tempDev;
+            UkeyDev   tempDev;
             DEVHANDLE devHandle;
 
             StrList appNameList;
@@ -556,15 +542,12 @@ int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
             ULONG rv = connectDev(reinterpret_cast<LPSTR>(devName), devHandle);
             delete[] devName;
             if (rv != SAR_OK) {
-                LOG_WARN("connectDev failed, continue, err 0x%x, dev %s", rv,
-                         devName);
+                LOG_WARN("connectDev failed, continue, err %#x, dev %s", rv, devName);
                 continue;
             }
             rv = enumApp(devHandle, appNameList);
             if (rv != SAR_OK) {
-                LOG_WARN(
-                    "enumApp by devHandle failed, continue, err 0x%x, dev %s",
-                    rv, devName);
+                LOG_WARN("enumApp by devHandle failed, continue, err %#x, dev %s", rv, devName);
                 disConnectDev(devHandle);
                 devHandle = NULL;
                 continue;
@@ -572,20 +555,18 @@ int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
 
             // 遍历app，得到container
             for (const auto &app : appNameList) {
-                UkeyApp tempApp;
+                UkeyApp      tempApp;
                 HAPPLICATION appHandle;
 
                 tempApp.appName = app;
                 // 传入string，实际只要LPSTR，需要转换
                 StrList conNameList;
-                char *appName = new char[app.length() + 1];
+                char   *appName = new char[app.length() + 1];
                 strncpy(appName, app.c_str(), app.length() + 1);
-                ULONG rv = openApp(reinterpret_cast<LPSTR>(appName), devHandle,
-                                   appHandle);
+                ULONG rv = openApp(reinterpret_cast<LPSTR>(appName), devHandle, appHandle);
                 delete[] appName;
                 if (rv != SAR_OK) {
-                    LOG_WARN("openApp failed, continue, err 0x%x, app %s", rv,
-                             appName);
+                    LOG_WARN("openApp failed, continue, err %#x, app %s", rv, appName);
                     continue;
                 }
 
@@ -593,30 +574,28 @@ int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
                 if (rv != SAR_OK) {
                     LOG_WARN(
                         "enumContainer by appHandle failed, continue, err "
-                        "0x%x, app %s",
-                        rv, appName);
+                        "%#x, app %s",
+                        rv,
+                        appName);
                     closeApp(appHandle);
                     continue;
                 }
 
                 // 遍历container，得到cert
                 for (const auto &con : conNameList) {
-                    UkeyCon tempCon;
+                    UkeyCon           tempCon;
                     std::vector<BYTE> cert;
                     tempCon.conName = con;
                     // 传入string，实际只要LPSTR，需要转换
                     char *conName = new char[con.length() + 1];
                     strncpy(conName, con.c_str(), con.length() + 1);
-                    rv = getCertByContainerName(
-                        reinterpret_cast<LPSTR>(conName), appHandle,
-                        CertType_ENCRYPT, cert);
+                    rv = getCertByContainerName(reinterpret_cast<LPSTR>(conName), appHandle, CertType_ENCRYPT, cert);
                     delete[] conName;
                     if (cert.size() == 0) {
                         continue;
                     }
 
-                    if (getCertUserNameAndIssuer(cert, tempCon.subject,
-                                                 tempCon.issuer))
+                    if (getCertUserNameAndIssuer(cert, tempCon.subject, tempCon.issuer))
                         tempApp.vcCons.emplace_back(tempCon);
                 }
                 closeApp(appHandle);
@@ -633,9 +612,9 @@ int SKFApiBase::enumAllInfo(std::vector<UkeyDev> &devInfoList) const {
 }
 
 int SKFApiBase::enumDev(StrList &devNameList) const {
-    ULONG rv = SAR_FAIL;
+    ULONG rv             = SAR_FAIL;
     LPSTR pszDevNameList = NULL;
-    ULONG ulSize = 0;
+    ULONG ulSize         = 0;
 
     // 所有接口先判断是否初始化api
     if (!m_isApiInit) {
@@ -648,14 +627,12 @@ int SKFApiBase::enumDev(StrList &devNameList) const {
         // 第二步获取真实的名称列表
         rv = m_apiHandle.pFun_SKF_EnumDev(TRUE, pszDevNameList, &ulSize);
         if (rv != SAR_OK) {
-            LOG_ERROR("SKF_EnumDev step 1 error: 0x%x", rv);
+            LOG_ERROR("SKF_EnumDev step 1 error: %#x", rv);
             break;
         }
 
         if (ulSize <= 0) {
-            LOG_ERROR(
-                "Dev size should be greater than zero, but its value is: %d",
-                ulSize);
+            LOG_ERROR("Dev size should be greater than zero, but its value is: %d", ulSize);
             rv = SAR_FAIL;
             break;
         }
@@ -695,7 +672,7 @@ int SKFApiBase::connectDev(LPSTR devName, DEVHANDLE &devHandle) const {
 
     ULONG rv = m_apiHandle.pFun_SKF_ConnectDev(devName, &devHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_ConnectDev error, errCode: 0x%x", rv);
+        LOG_ERROR("SKF_ConnectDev error, errCode: %#x", rv);
     }
     return rv;
 }
@@ -713,13 +690,12 @@ int SKFApiBase::disConnectDev(DEVHANDLE devHandle) const {
 
     ULONG rv = m_apiHandle.pFun_SKF_DisConnectDev(devHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_DisConnectDev error, errCode: 0x%x", rv);
+        LOG_ERROR("SKF_DisConnectDev error, errCode: %#x", rv);
     }
     return rv;
 }
 
-int SKFApiBase::openApp(LPSTR appName, DEVHANDLE devHandle,
-                        HAPPLICATION &appHandle) const {
+int SKFApiBase::openApp(LPSTR appName, DEVHANDLE devHandle, HAPPLICATION &appHandle) const {
     assert(appName != NULL);
     assert(devHandle != NULL);
     // 所有接口先判断是否初始化api
@@ -728,10 +704,9 @@ int SKFApiBase::openApp(LPSTR appName, DEVHANDLE devHandle,
         return SAR_FAIL;
     }
 
-    ULONG rv =
-        m_apiHandle.pFun_SKF_OpenApplication(devHandle, appName, &appHandle);
+    ULONG rv = m_apiHandle.pFun_SKF_OpenApplication(devHandle, appName, &appHandle);
     if (rv != SAR_OK) {
-        LOG_INFO("SKF_OpenApplication, error 0x%x", rv);
+        LOG_INFO("SKF_OpenApplication, error %#x", rv);
     }
 
     return rv;
@@ -750,43 +725,40 @@ int SKFApiBase::closeApp(HAPPLICATION appHandle) const {
 
     ULONG rv = m_apiHandle.pFun_SKF_CloseApplication(appHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_CloseApplication error, errCode: 0x%x", rv);
+        LOG_ERROR("SKF_CloseApplication error, errCode: %#x", rv);
     }
     return rv;
 }
 
-int SKFApiBase::getCertByContainerName(LPSTR conName, HAPPLICATION appHandle,
-                                       CertType type,
+int SKFApiBase::getCertByContainerName(LPSTR              conName,
+                                       HAPPLICATION       appHandle,
+                                       CertType           type,
                                        std::vector<BYTE> &cert) const {
     assert(conName != NULL);
     assert(appHandle != NULL);
     HCONTAINER conHandle;
-    ULONG rv = openContainer(conName, appHandle, conHandle);
+    ULONG      rv = openContainer(conName, appHandle, conHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("openContianer by name failed, err 0x%x, con %s", rv,
-                  conName);
+        LOG_ERROR("openContianer by name failed, err %#x, con %s", rv, conName);
         return rv;
     }
     rv = getCertByContainer(conHandle, type, cert);
     closeContainer(conHandle);
     if (rv != SAR_OK) {
-        LOG_ERROR("getCertByContianer by conHandle failed, err 0x%x, con %s",
-                  rv, conName);
+        LOG_ERROR("getCertByContianer by conHandle failed, err %#x, con %s", rv, conName);
     }
     return rv;
 }
 
-int SKFApiBase::getCertByContainer(HCONTAINER conHandle, CertType type,
-                                   std::vector<BYTE> &cert) const {
+int SKFApiBase::getCertByContainer(HCONTAINER conHandle, CertType type, std::vector<BYTE> &cert) const {
     assert(conHandle != NULL);
-    ULONG len = 0;
+    ULONG len    = 0;
     BYTE *pbCert = NULL;
 
     // 同样分为两步，第一步获取长度，第二步获取内容
-    ULONG rv = m_apiHandle.pFun_SKF_ExportCertificate(
-        conHandle, type == CertType_SIGN ? TRUE : FALSE, pbCert, &len);
+    ULONG rv = m_apiHandle.pFun_SKF_ExportCertificate(conHandle, type == CertType_SIGN ? TRUE : FALSE, pbCert, &len);
     if (rv != SAR_OK) {
-        LOG_ERROR("SKF_ExportCertificate error 0x%x", rv);
+        LOG_ERROR("SKF_ExportCertificate error %#x", rv);
         return rv;
     }
     do {
@@ -796,10 +768,10 @@ int SKFApiBase::getCertByContainer(HCONTAINER conHandle, CertType type,
             return SAR_FAIL;
         }
 
-        ULONG rv = m_apiHandle.pFun_SKF_ExportCertificate(
-            conHandle, type == CertType_SIGN ? TRUE : FALSE, pbCert, &len);
+        ULONG rv =
+            m_apiHandle.pFun_SKF_ExportCertificate(conHandle, type == CertType_SIGN ? TRUE : FALSE, pbCert, &len);
         if (rv != SAR_OK) {
-            LOG_ERROR("SKF_EnumApplication error 0x%x", rv);
+            LOG_ERROR("SKF_EnumApplication error %#x", rv);
             break;
         }
 
@@ -815,43 +787,38 @@ int SKFApiBase::getCertByContainer(HCONTAINER conHandle, CertType type,
     return rv;
 }
 
-int SKFApiBase::checkCertByCAIssuer(HCONTAINER hContainer,
-                                    const char *Issuer) const {
+int SKFApiBase::checkCertByCAIssuer(HCONTAINER hContainer, const char *Issuer) const {
     assert(Issuer != NULL);
     const char *operation = "checkCertByCAIssuer";
     LOG_DEBUG("[%s] Issuer %s", operation, Issuer);
     std::vector<BYTE> cert;
-    ULONG rv = getCertByContainer(hContainer, CertType_ENCRYPT, cert);
+    ULONG             rv = getCertByContainer(hContainer, CertType_ENCRYPT, cert);
     if (rv != SAR_OK) {
-        LOG_ERROR("getCertByContainer error 0x%x", rv);
+        LOG_ERROR("getCertByContainer error %#x", rv);
         return rv;
     }
 
-    return check_cert_issuer(&(cert.front()), cert.size(), Issuer) == TRUE
-               ? SAR_OK
-               : SAR_FAIL;
+    return check_cert_issuer(&(cert.front()), cert.size(), Issuer) == TRUE ? SAR_OK : SAR_FAIL;
 }
 
-int SKFApiBase::openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName,
-                           const char *certPwd, Usbkey &usbKey) const {
+int SKFApiBase::openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName, const char *certPwd, Usbkey &usbKey) const {
     assert(devName != NULL);
     assert(appName != NULL);
     assert(conName != NULL);
     const char *operation = "openUsbkey";
-    LOG_DEBUG("[%s] devName %s, appName %s, conName %s", operation, devName,
-              appName, conName);
+    LOG_DEBUG("[%s] devName %s, appName %s, conName %s", operation, devName, appName, conName);
     ULONG rv;
     // 关掉上一次的usbkey
     closeUsbkey(usbKey);
     do {
         rv = connectDev(devName, usbKey.devHandle);
         if (rv != SAR_OK) {
-            LOG_ERROR("connectDev failed, err 0x%x, dev %s", rv, devName);
+            LOG_ERROR("connectDev failed, err %#x, dev %s", rv, devName);
             break;
         }
         rv = openApp(appName, usbKey.devHandle, usbKey.appHandle);
         if (rv != SAR_OK) {
-            LOG_ERROR("openApp failed, err 0x%x, app %s", rv, appName);
+            LOG_ERROR("openApp failed, err %#x, app %s", rv, appName);
             break;
         }
 
@@ -859,15 +826,14 @@ int SKFApiBase::openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName,
         if (certPwd != NULL) {
             rv = verifyPin(usbKey.appHandle, certPwd);
             if (rv != SAR_OK) {
-                LOG_ERROR("verifyPin failed, err 0x%x", rv);
+                LOG_ERROR("verifyPin failed, err %#x", rv);
                 break;
             }
             usbKey.certPwd = certPwd;
         }
         rv = openContainer(conName, usbKey.appHandle, usbKey.conHandle);
         if (rv != SAR_OK) {
-            LOG_ERROR("openContainer failed, err 0x%x, conName %s", rv,
-                      conName);
+            LOG_ERROR("openContainer failed, err %#x, conName %s", rv, conName);
             break;
         }
         return SAR_OK;

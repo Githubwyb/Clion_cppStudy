@@ -24,172 +24,180 @@ typedef ULONG(DEVAPI* PFun_SKF_ConnectDev)(LPSTR szName, DEVHANDLE* phDev);
 typedef ULONG(DEVAPI* PFun_SKF_DisConnectDev)(DEVHANDLE hDev);
 typedef ULONG(DEVAPI* PFun_SKF_ClearSecureState)(HAPPLICATION hApplication);
 typedef ULONG(DEVAPI* PFun_SKF_CloseApplication)(HAPPLICATION hApplication);
-typedef ULONG(DEVAPI* PFun_SKF_ExportPublicKey)(HCONTAINER hContainer,
-                                                BOOL bSignFlag, BYTE* pbBlob,
-                                                ULONG* pulBlobLen);
+typedef ULONG(DEVAPI* PFun_SKF_ExportPublicKey)(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbBlob, ULONG* pulBlobLen);
 typedef ULONG(DEVAPI* PFun_SKF_VerifyPIN)(HAPPLICATION hApplication,
-                                          ULONG ulPINType, LPSTR szPIN,
-                                          ULONG* pulRetryCount);
-typedef ULONG(DEVAPI* PFun_SKF_OpenApplication)(DEVHANDLE hDev, LPSTR szAppName,
-                                                HAPPLICATION* phApplication);
-typedef ULONG(DEVAPI* PFun_SKF_EnumApplication)(DEVHANDLE hDev, LPSTR szAppName,
-                                                ULONG* pulSize);
+                                          ULONG        ulPINType,
+                                          LPSTR        szPIN,
+                                          ULONG*       pulRetryCount);
+typedef ULONG(DEVAPI* PFun_SKF_OpenApplication)(DEVHANDLE hDev, LPSTR szAppName, HAPPLICATION* phApplication);
+typedef ULONG(DEVAPI* PFun_SKF_EnumApplication)(DEVHANDLE hDev, LPSTR szAppName, ULONG* pulSize);
 
-typedef ULONG(DEVAPI* PFun_SKF_GenRandom)(DEVHANDLE hDev, BYTE* pbRandom,
-                                          ULONG ulRandomLen);
+typedef ULONG(DEVAPI* PFun_SKF_GenRandom)(DEVHANDLE hDev, BYTE* pbRandom, ULONG ulRandomLen);
 
-typedef ULONG(DEVAPI* PFun_SKF_RSASignData)(HCONTAINER hContainer, BYTE* pbData,
-                                            ULONG ulDataLen, BYTE* pbSignature,
-                                            ULONG* pulSignLen);
+typedef ULONG(DEVAPI* PFun_SKF_RSASignData)(HCONTAINER hContainer,
+                                            BYTE*      pbData,
+                                            ULONG      ulDataLen,
+                                            BYTE*      pbSignature,
+                                            ULONG*     pulSignLen);
+typedef ULONG(DEVAPI* PFun_SKF_RSAVerify)(DEVHANDLE         hDev,
+                                          RSAPUBLICKEYBLOB* pRSAPubKeyBlob,
+                                          BYTE*             pbData,
+                                          ULONG             ulDataLen,
+                                          BYTE*             pbSignature,
+                                          ULONG             ulSignLen);
 
 /***************** 容器管理类接口 **********************/
 typedef ULONG(DEVAPI* PFun_SKF_CreateContainer)(HAPPLICATION hApplication,
-                                                LPSTR szContainerName,
-                                                HCONTAINER* phContainer);
-typedef ULONG(DEVAPI* PFun_SKF_DeleteContainer)(HAPPLICATION hApplication,
-                                                LPSTR szContainerName);
-typedef ULONG(DEVAPI* PFun_SKF_EnumContainer)(HAPPLICATION hApplication,
-                                              LPSTR szContainerName,
-                                              ULONG* pulSize);
+                                                LPSTR        szContainerName,
+                                                HCONTAINER*  phContainer);
+typedef ULONG(DEVAPI* PFun_SKF_DeleteContainer)(HAPPLICATION hApplication, LPSTR szContainerName);
+typedef ULONG(DEVAPI* PFun_SKF_EnumContainer)(HAPPLICATION hApplication, LPSTR szContainerName, ULONG* pulSize);
 typedef ULONG(DEVAPI* PFun_SKF_OpenContainer)(HAPPLICATION hApplication,
-                                              LPSTR szContainerName,
-                                              HCONTAINER* phContainer);
+                                              LPSTR        szContainerName,
+                                              HCONTAINER*  phContainer);
 typedef LONG(DEVAPI* PFun_SKF_CloseContainer)(HCONTAINER hContainer);
-typedef ULONG(DEVAPI* PFun_SKF_GetContainerType)(HCONTAINER hContainer,
-                                                 ULONG* pulContainerType);
-typedef ULONG(DEVAPI* PFun_SKF_ImportCertificate)(HCONTAINER hContainer,
-                                                  BOOL bSignFlag, BYTE* pbCert,
-                                                  ULONG ulCertLen);
+typedef ULONG(DEVAPI* PFun_SKF_GetContainerType)(HCONTAINER hContainer, ULONG* pulContainerType);
+typedef ULONG(DEVAPI* PFun_SKF_ImportCertificate)(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbCert, ULONG ulCertLen);
 typedef ULONG(DEVAPI* PFun_SKF_ExportCertificate)(HCONTAINER hContainer,
-                                                  BOOL bSignFlag, BYTE* pbCert,
-                                                  ULONG* pulCertLen);
+                                                  BOOL       bSignFlag,
+                                                  BYTE*      pbCert,
+                                                  ULONG*     pulCertLen);
 
 /******************* 非对称椭圆算法 ********************/
-typedef ULONG(DEVAPI* PFun_SKF_GenECCKeyPair)(HCONTAINER hContainer,
-                                              ULONG ulAlgId,
-                                              ECCPUBLICKEYBLOB* pBlob);
+typedef ULONG(DEVAPI* PFun_SKF_GenECCKeyPair)(HCONTAINER hContainer, ULONG ulAlgId, ECCPUBLICKEYBLOB* pBlob);
 
-typedef ULONG(DEVAPI* PFun_SKF_ImportECCKeyPair)(
-    HCONTAINER hContainer, PENVELOPEDKEYBLOB pEnvelopedKeyBlob);
+typedef ULONG(DEVAPI* PFun_SKF_ImportECCKeyPair)(HCONTAINER hContainer, PENVELOPEDKEYBLOB pEnvelopedKeyBlob);
 
-typedef ULONG(DEVAPI* PFun_SKF_ECCSignData)(HCONTAINER hContainer, BYTE* pbData,
-                                            ULONG ulDataLen,
+typedef ULONG(DEVAPI* PFun_SKF_ECCSignData)(HCONTAINER        hContainer,
+                                            BYTE*             pbData,
+                                            ULONG             ulDataLen,
                                             PECCSIGNATUREBLOB pSignature);
 
-typedef ULONG(DEVAPI* PFun_SKF_ECCVerify)(DEVHANDLE hDev,
+typedef ULONG(DEVAPI* PFun_SKF_ECCVerify)(DEVHANDLE         hDev,
                                           ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-                                          BYTE* pbData, ULONG ulDataLen,
+                                          BYTE*             pbData,
+                                          ULONG             ulDataLen,
                                           PECCSIGNATUREBLOB pSignature);
 
-typedef ULONG(DEVAPI* PFun_SKF_ECCExportSessionKey)(HCONTAINER hContainer,
-                                                    ULONG ulAlgId,
+typedef ULONG(DEVAPI* PFun_SKF_ECCExportSessionKey)(HCONTAINER        hContainer,
+                                                    ULONG             ulAlgId,
                                                     ECCPUBLICKEYBLOB* pPubKey,
-                                                    PECCCIPHERBLOB pData,
-                                                    HANDLE* phSessionKey);
+                                                    PECCCIPHERBLOB    pData,
+                                                    HANDLE*           phSessionKey);
 
-typedef ULONG(DEVAPI* PFun_SKF_RSAExportSessionKeyEx)(HANDLE pSessionKey,
+typedef ULONG(DEVAPI* PFun_SKF_RSAExportSessionKeyEx)(HANDLE            pSessionKey,
                                                       ECCPUBLICKEYBLOB* pPubKey,
-                                                      BYTE* pbData,
-                                                      ULONG* pulDataLen);
+                                                      BYTE*             pbData,
+                                                      ULONG*            pulDataLen);
 
-typedef ULONG(DEVAPI* PFun_SKF_ExtECCEncrypt)(DEVHANDLE hDev,
+typedef ULONG(DEVAPI* PFun_SKF_ExtECCEncrypt)(DEVHANDLE         hDev,
                                               ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-                                              BYTE* pbPlainText,
-                                              ULONG ulPlainTextLen,
-                                              PECCCIPHERBLOB pCipherText);
+                                              BYTE*             pbPlainText,
+                                              ULONG             ulPlainTextLen,
+                                              PECCCIPHERBLOB    pCipherText);
 
-typedef ULONG(DEVAPI* PFun_SKF_ExtECCDecrypt)(DEVHANDLE hDev,
+typedef ULONG(DEVAPI* PFun_SKF_ExtECCDecrypt)(DEVHANDLE          hDev,
                                               ECCPRIVATEKEYBLOB* pECCPriKeyBlob,
-                                              PECCCIPHERBLOB pCipherText,
-                                              BYTE* pbPlainText,
-                                              ULONG* pulPlainTextLen);
+                                              PECCCIPHERBLOB     pCipherText,
+                                              BYTE*              pbPlainText,
+                                              ULONG*             pulPlainTextLen);
 
-typedef ULONG(DEVAPI* PFun_SKF_ExtECCSign)(DEVHANDLE hDev,
+typedef ULONG(DEVAPI* PFun_SKF_ExtECCSign)(DEVHANDLE          hDev,
                                            ECCPRIVATEKEYBLOB* pECCPriKeyBlob,
-                                           BYTE* pbData, ULONG ulDataLen,
-                                           PECCSIGNATUREBLOB pSignature);
+                                           BYTE*              pbData,
+                                           ULONG              ulDataLen,
+                                           PECCSIGNATUREBLOB  pSignature);
 
-typedef ULONG(DEVAPI* PFun_SKF_ExtECCVerify)(DEVHANDLE hDev,
+typedef ULONG(DEVAPI* PFun_SKF_ExtECCVerify)(DEVHANDLE         hDev,
                                              ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-                                             BYTE* pbData, ULONG ulDataLen,
+                                             BYTE*             pbData,
+                                             ULONG             ulDataLen,
                                              PECCSIGNATUREBLOB pSignature);
 
-typedef ULONG(DEVAPI* PFun_SKF_GenerateAgreementDataWithECC)(
-    HCONTAINER hContainer, ULONG ulAlgId, ECCPUBLICKEYBLOB* pTempECCPubKeyBlob,
-    BYTE* pbID, ULONG ulIDLen, HANDLE* phAgreementHandle);
+typedef ULONG(DEVAPI* PFun_SKF_GenerateAgreementDataWithECC)(HCONTAINER        hContainer,
+                                                             ULONG             ulAlgId,
+                                                             ECCPUBLICKEYBLOB* pTempECCPubKeyBlob,
+                                                             BYTE*             pbID,
+                                                             ULONG             ulIDLen,
+                                                             HANDLE*           phAgreementHandle);
 
-typedef ULONG(DEVAPI* PFun_SKF_GenerateAgreementDataAndKeyWithECC)(
-    HANDLE hContainer, ULONG ulAlgId, ECCPUBLICKEYBLOB* pSponsorECCPubKeyBlob,
-    ECCPUBLICKEYBLOB* pSponsorTempECCPubKeyBlob,
-    ECCPUBLICKEYBLOB* pTempECCPubKeyBlob, BYTE* pbID, ULONG ulIDLen,
-    BYTE* pbSponsorID, ULONG ulSponsorIDLen, HANDLE* phKeyHandle);
+typedef ULONG(DEVAPI* PFun_SKF_GenerateAgreementDataAndKeyWithECC)(HANDLE            hContainer,
+                                                                   ULONG             ulAlgId,
+                                                                   ECCPUBLICKEYBLOB* pSponsorECCPubKeyBlob,
+                                                                   ECCPUBLICKEYBLOB* pSponsorTempECCPubKeyBlob,
+                                                                   ECCPUBLICKEYBLOB* pTempECCPubKeyBlob,
+                                                                   BYTE*             pbID,
+                                                                   ULONG             ulIDLen,
+                                                                   BYTE*             pbSponsorID,
+                                                                   ULONG             ulSponsorIDLen,
+                                                                   HANDLE*           phKeyHandle);
 
-typedef ULONG(DEVAPI* PFun_SKF_GenerateKeyWithECC)(
-    HANDLE hAgreementHandle, ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-    ECCPUBLICKEYBLOB* pTempECCPubKeyBlob, BYTE* pbID, ULONG ulIDLen,
-    HANDLE* phKeyHandle);
+typedef ULONG(DEVAPI* PFun_SKF_GenerateKeyWithECC)(HANDLE            hAgreementHandle,
+                                                   ECCPUBLICKEYBLOB* pECCPubKeyBlob,
+                                                   ECCPUBLICKEYBLOB* pTempECCPubKeyBlob,
+                                                   BYTE*             pbID,
+                                                   ULONG             ulIDLen,
+                                                   HANDLE*           phKeyHandle);
 
 /******************* 杂凑算法 ********************/
-typedef ULONG(DEVAPI* PFun_SKF_DigestInit)(DEVHANDLE hDev, ULONG ulAlgID,
+typedef ULONG(DEVAPI* PFun_SKF_DigestInit)(DEVHANDLE         hDev,
+                                           ULONG             ulAlgID,
                                            ECCPUBLICKEYBLOB* pPubKey,
-                                           unsigned char* pucID, ULONG ulIDLen,
-                                           HANDLE* phHash);
+                                           unsigned char*    pucID,
+                                           ULONG             ulIDLen,
+                                           HANDLE*           phHash);
 
-typedef ULONG(DEVAPI* PFun_SKF_Digest)(HANDLE hHash, BYTE* pbData,
-                                       ULONG ulDataLen, BYTE* pbHashData,
-                                       ULONG* pulHashLen);
+typedef ULONG(
+    DEVAPI* PFun_SKF_Digest)(HANDLE hHash, BYTE* pbData, ULONG ulDataLen, BYTE* pbHashData, ULONG* pulHashLen);
 
-typedef ULONG(DEVAPI* PFun_SKF_DigestUpdate)(HANDLE hHash, BYTE* pbData,
-                                             ULONG ulDataLen);
+typedef ULONG(DEVAPI* PFun_SKF_DigestUpdate)(HANDLE hHash, BYTE* pbData, ULONG ulDataLen);
 
-typedef ULONG(DEVAPI* PFun_SKF_DigestFinal)(HANDLE hHash, BYTE* pHashData,
-                                            ULONG* pulHashLen);
+typedef ULONG(DEVAPI* PFun_SKF_DigestFinal)(HANDLE hHash, BYTE* pHashData, ULONG* pulHashLen);
 
 // 动态库api结构体
 typedef struct DynamicApi {
-    PFun_SKF_EnumDev pFun_SKF_EnumDev;
-    PFun_SKF_ConnectDev pFun_SKF_ConnectDev;
-    PFun_SKF_DisConnectDev pFun_SKF_DisConnectDev;
+    PFun_SKF_EnumDev          pFun_SKF_EnumDev;
+    PFun_SKF_ConnectDev       pFun_SKF_ConnectDev;
+    PFun_SKF_DisConnectDev    pFun_SKF_DisConnectDev;
     PFun_SKF_ClearSecureState pFun_SKF_ClearSecureState;
     PFun_SKF_CloseApplication pFun_SKF_CloseApplication;
-    PFun_SKF_ExportPublicKey pFun_SKF_ExportPublicKey;
-    PFun_SKF_RSASignData pFun_SKF_RSASignData;
-    PFun_SKF_VerifyPIN pFun_SKF_VerifyPIN;
-    PFun_SKF_OpenApplication pFun_SKF_OpenApplication;
-    PFun_SKF_EnumApplication pFun_SKF_EnumApplication;
-    PFun_SKF_GenRandom pFun_SKF_GenRandom;
+    PFun_SKF_ExportPublicKey  pFun_SKF_ExportPublicKey;
+    PFun_SKF_RSASignData      pFun_SKF_RSASignData;
+    PFun_SKF_VerifyPIN        pFun_SKF_VerifyPIN;
+    PFun_SKF_OpenApplication  pFun_SKF_OpenApplication;
+    PFun_SKF_EnumApplication  pFun_SKF_EnumApplication;
+    PFun_SKF_GenRandom        pFun_SKF_GenRandom;
 
     // 容器类接口
-    PFun_SKF_CreateContainer pFun_SKF_CreateContainer;
-    PFun_SKF_DeleteContainer pFun_SKF_DeleteContainer;
-    PFun_SKF_OpenContainer pFun_SKF_OpenContainer;
-    PFun_SKF_EnumContainer pFun_SKF_EnumContainer;
-    PFun_SKF_CloseContainer pFun_SKF_CloseContainer;
-    PFun_SKF_GetContainerType pFun_SKF_GetContainerType;
+    PFun_SKF_CreateContainer   pFun_SKF_CreateContainer;
+    PFun_SKF_DeleteContainer   pFun_SKF_DeleteContainer;
+    PFun_SKF_OpenContainer     pFun_SKF_OpenContainer;
+    PFun_SKF_EnumContainer     pFun_SKF_EnumContainer;
+    PFun_SKF_CloseContainer    pFun_SKF_CloseContainer;
+    PFun_SKF_GetContainerType  pFun_SKF_GetContainerType;
     PFun_SKF_ImportCertificate pFun_SKF_ImportCertificate;
     PFun_SKF_ExportCertificate pFun_SKF_ExportCertificate;
 
     // sm3 杂凑算法
-    PFun_SKF_DigestInit pFun_SKF_DigestInit;
-    PFun_SKF_Digest pFun_SKF_Digest;
+    PFun_SKF_DigestInit   pFun_SKF_DigestInit;
+    PFun_SKF_Digest       pFun_SKF_Digest;
     PFun_SKF_DigestUpdate pFun_SKF_DigestUpdate;
-    PFun_SKF_DigestFinal pFun_SKF_DigestFinal;
+    PFun_SKF_DigestFinal  pFun_SKF_DigestFinal;
 
     // sm2非对阵椭圆算法
-    PFun_SKF_GenECCKeyPair pFun_SKF_GenECCKeyPair;
-    PFun_SKF_ImportECCKeyPair pFun_SKF_ImportECCKeyPair;
-    PFun_SKF_ECCSignData pFun_SKF_ECCSignData;
-    PFun_SKF_ECCVerify pFun_SKF_ECCVerify;
-    PFun_SKF_ECCExportSessionKey pFun_SKF_ECCExportSessionKey;
-    PFun_SKF_RSAExportSessionKeyEx pFun_SKF_RSAExportSessionKeyEx;
-    PFun_SKF_ExtECCEncrypt pFun_SKF_ExtECCEncrypt;
-    PFun_SKF_ExtECCDecrypt pFun_SKF_ExtECCDecrypt;
-    PFun_SKF_ExtECCSign pFun_SKF_ExtECCSign;
-    PFun_SKF_ExtECCVerify pFun_SKF_ExtECCVerify;
-    PFun_SKF_GenerateAgreementDataWithECC pFun_SKF_GenerateAgreementDataWithECC;
-    PFun_SKF_GenerateAgreementDataAndKeyWithECC
-        pFun_SKF_GenerateAgreementDataAndKeyWithECC;
-    PFun_SKF_GenerateKeyWithECC pFun_SKF_GenerateKeyWithECC;
+    PFun_SKF_GenECCKeyPair                      pFun_SKF_GenECCKeyPair;
+    PFun_SKF_ImportECCKeyPair                   pFun_SKF_ImportECCKeyPair;
+    PFun_SKF_ECCSignData                        pFun_SKF_ECCSignData;
+    PFun_SKF_ECCVerify                          pFun_SKF_ECCVerify;
+    PFun_SKF_ECCExportSessionKey                pFun_SKF_ECCExportSessionKey;
+    PFun_SKF_RSAExportSessionKeyEx              pFun_SKF_RSAExportSessionKeyEx;
+    PFun_SKF_ExtECCEncrypt                      pFun_SKF_ExtECCEncrypt;
+    PFun_SKF_ExtECCDecrypt                      pFun_SKF_ExtECCDecrypt;
+    PFun_SKF_ExtECCSign                         pFun_SKF_ExtECCSign;
+    PFun_SKF_ExtECCVerify                       pFun_SKF_ExtECCVerify;
+    PFun_SKF_GenerateAgreementDataWithECC       pFun_SKF_GenerateAgreementDataWithECC;
+    PFun_SKF_GenerateAgreementDataAndKeyWithECC pFun_SKF_GenerateAgreementDataAndKeyWithECC;
+    PFun_SKF_GenerateKeyWithECC                 pFun_SKF_GenerateKeyWithECC;
 } DynamicApi;
 
 typedef enum CertType {
@@ -198,17 +206,17 @@ typedef enum CertType {
 } CertType;
 
 typedef struct Usbkey {
-    std::string certPwd;
-    DEVHANDLE devHandle;
+    std::string  certPwd;
+    DEVHANDLE    devHandle;
     HAPPLICATION appHandle;
-    HCONTAINER conHandle;
+    HCONTAINER   conHandle;
 
     Usbkey() : certPwd(""), devHandle(NULL), appHandle(NULL), conHandle(NULL) {}
 } Usbkey;
 
 // skf基类，用于定义一些通用接口
 class SKFApiBase {
-   public:
+public:
     /**
      * @brief lib库初始化，加载内部需要的skf函数，需要不同平台自己实现
      *
@@ -242,8 +250,7 @@ class SKFApiBase {
      * @param appHandle [OUT]app连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    virtual int openApp(LPSTR appName, DEVHANDLE devHandle,
-                        HAPPLICATION& appHandle) const;
+    virtual int openApp(LPSTR appName, DEVHANDLE devHandle, HAPPLICATION& appHandle) const;
 
     /**
      * @brief 关闭app
@@ -261,8 +268,7 @@ class SKFApiBase {
      * @param conHandle [OUT]container连接句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    virtual int openContainer(LPSTR conName, HAPPLICATION appHandle,
-                              HCONTAINER& conHandle) const;
+    virtual int openContainer(LPSTR conName, HAPPLICATION appHandle, HCONTAINER& conHandle) const;
 
     /**
      * @brief 关闭container
@@ -291,42 +297,42 @@ class SKFApiBase {
      * @param usbKey [OUT]各种打开后的句柄
      * @return int SAR错误码，0成功，其他失败
      */
-    int openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName,
-                   const char* certPwd, Usbkey& usbKey) const;
+    int openUsbkey(LPSTR devName, LPSTR appName, LPSTR conName, const char* certPwd, Usbkey& usbKey) const;
 
     void closeUsbkey(Usbkey& usbKey) const;
 
-    // virtual int doRsaSign(const unsigned char* dgst, int dgst_len, unsigned
-    // char* sign,
-    //              unsigned int* signLen);
-
     int enumAllInfo(std::vector<UkeyDev>& devInfoList) const;
 
-    virtual int ECCSignData(HCONTAINER conHandle, BYTE* pbData, ULONG ulDataLen,
-                            PECCSIGNATUREBLOB pSignature) const;
-    virtual int ECCVerify(DEVHANDLE hDev, ECCPUBLICKEYBLOB* pECCPubKeyBlob,
-                          BYTE* pbData, ULONG ulDataLen,
+    virtual int ECCSignData(HCONTAINER conHandle, BYTE* pbData, ULONG ulDataLen, PECCSIGNATUREBLOB pSignature) const;
+    virtual int ECCVerify(DEVHANDLE         hDev,
+                          ECCPUBLICKEYBLOB* pECCPubKeyBlob,
+                          BYTE*             pbData,
+                          ULONG             ulDataLen,
                           ECCSIGNATUREBLOB* pSignature) const;
+    virtual int RSASignData(HCONTAINER hContainer,
+                            BYTE*      pbData,
+                            ULONG      ulDataLen,
+                            BYTE*      pbSignature,
+                            ULONG*     pulSignLen) const;
 
     // virtual int GenRandom(DEVHANDLE hDev, BYTE *pbRandom, ULONG ulRandomLen);
-    virtual int ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag,
-                                BYTE* pbBlob, ULONG* pulBlobLen) const;
-    virtual int ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag,
-                                  BYTE* pbCert, ULONG* pulCertLen) const;
+    virtual int ExportPublicKey(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbBlob, ULONG* pulBlobLen) const;
+    virtual int ExportCertificate(HCONTAINER hContainer, BOOL bSignFlag, BYTE* pbCert, ULONG* pulCertLen) const;
+    virtual int GetContainerType(HCONTAINER hContainer, ULONG* pulContainerType) const;
 
     int checkCertByCAIssuer(HCONTAINER hContainer, const char* Issuer) const;
 
-   protected:
+protected:
     /**
      * @brief Destroy the SKFApiBase object
      *
      */
     ~SKFApiBase();
 
-    DynamicApi m_apiHandle;    // api接口定义结构体
-    bool m_isApiInit = false;  // 标识api是否已经初始化
+    DynamicApi m_apiHandle;          // api接口定义结构体
+    bool       m_isApiInit = false;  // 标识api是否已经初始化
 
-   private:
+private:
     /**
      * @brief 枚举所有设备
      *
@@ -342,8 +348,7 @@ class SKFApiBase {
      * @param appNameList [OUT]app名字列表
      * @return ULONG
      */
-    ULONG enumAppByDevName(LPSTR devName,
-                           std::vector<std::string>& appNameList) const;
+    ULONG enumAppByDevName(LPSTR devName, std::vector<std::string>& appNameList) const;
 
     /**
      * @brief 枚举所有的app
@@ -352,8 +357,7 @@ class SKFApiBase {
      * @param szList [OUT]app名字列表
      * @return ULONG
      */
-    virtual ULONG enumApp(DEVHANDLE devHandle,
-                          std::vector<std::string>& szList) const;
+    virtual ULONG enumApp(DEVHANDLE devHandle, std::vector<std::string>& szList) const;
 
     /**
      * @brief
@@ -363,8 +367,7 @@ class SKFApiBase {
      * @param conNameList
      * @return int SAR错误码，0成功，其他失败
      */
-    int enumContainerByAppName(LPSTR appName, DEVHANDLE devHandle,
-                               std::vector<std::string>& conNameList) const;
+    int enumContainerByAppName(LPSTR appName, DEVHANDLE devHandle, std::vector<std::string>& conNameList) const;
     /**
      * @brief 枚举所有容器
      *
@@ -372,8 +375,7 @@ class SKFApiBase {
      * @param conNameList
      * @return int SAR错误码，0成功，其他失败
      */
-    virtual int enumContainer(HAPPLICATION appHandle,
-                              std::vector<std::string>& conNameList) const;
+    virtual int enumContainer(HAPPLICATION appHandle, std::vector<std::string>& conNameList) const;
 
     /**
      * @brief Get the Cert By Container Name
@@ -384,8 +386,7 @@ class SKFApiBase {
      * @param cert [OUT]证书内容
      * @return int SAR错误码，0成功，其他失败
      */
-    int getCertByContainerName(LPSTR conName, HAPPLICATION appHandle,
-                               CertType type, std::vector<BYTE>& cert) const;
+    int getCertByContainerName(LPSTR conName, HAPPLICATION appHandle, CertType type, std::vector<BYTE>& cert) const;
 
     /**
      * @brief Get the Cert By Container
@@ -395,18 +396,17 @@ class SKFApiBase {
      * @param cert [OUT]证书内容
      * @return int SAR错误码，0成功，其他失败
      */
-    virtual int getCertByContainer(HCONTAINER conHandle, CertType type,
-                                   std::vector<BYTE>& cert) const;
+    virtual int getCertByContainer(HCONTAINER conHandle, CertType type, std::vector<BYTE>& cert) const;
 };
 
 // 新加的平台，使用此宏定义继承关系
 #define INHERIT_SKF_BASE(name, libHandleType) \
     class SKFApi##name : public SKFApiBase {  \
-       public:                                \
+    public:                                   \
         ~SKFApi##name();                      \
         int initApi(const char*);             \
                                               \
-       private:                               \
+    private:                                  \
         libHandleType m_libHandle = NULL;     \
     };                                        \
     typedef SKFApi##name SKFApi

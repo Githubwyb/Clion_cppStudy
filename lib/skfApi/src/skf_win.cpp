@@ -11,24 +11,24 @@
 
 #ifdef _WIN32
 
+#include <map>
+#include <mutex>
+#include <string>
+
 #include "internal/skf_win.h"
 
 #include <assert.h>
-#include <atlconv.h>
-
-#include <map>
-#include <string>
 
 #include "log.hpp"
 
 static std::map<std::string, HMODULE> s_mapCache;
+static std::mutex                     s_mtxCache;
 
-#define loadFunc(funcName)                                       \
-    m_apiHandle.pFun_##funcName =                                \
-        (PFun_##funcName)GetProcAddress(m_libHandle, #funcName); \
-    if (m_apiHandle.pFun_##funcName == nullptr) {                \
-        LOG_ERROR("Func %s not found in lib", #funcName);        \
-        break;                                                   \
+#define loadFunc(funcName)                                                                 \
+    m_apiHandle.pFun_##funcName = (PFun_##funcName)GetProcAddress(m_libHandle, #funcName); \
+    if (m_apiHandle.pFun_##funcName == nullptr) {                                          \
+        LOG_ERROR("Func %s not found in lib", #funcName);                                  \
+        break;                                                                             \
     }
 
 SKFApiWin::~SKFApiWin() {
@@ -43,12 +43,12 @@ SKFApiWin::~SKFApiWin() {
 }
 
 static std::string UTF8ToGBK(const std::string &strUTF8) {
-    int len = MultiByteToWideChar(CP_UTF8, 0, strUTF8.c_str(), -1, NULL, 0);
+    int      len    = MultiByteToWideChar(CP_UTF8, 0, strUTF8.c_str(), -1, NULL, 0);
     wchar_t *wszGBK = new wchar_t[len + 1];
     wmemset(wszGBK, 0, len + 1);
     MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)strUTF8.c_str(), -1, wszGBK, len);
 
-    len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+    len         = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
     char *szGBK = new char[len + 1];
     memset(szGBK, 0, len + 1);
     WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
@@ -64,14 +64,16 @@ int SKFApiWin::initApi(const char *libPath) {
     // windows下需要将utf8转成gbk使用
     auto libPathUTF8 = UTF8ToGBK(libPath);
     bool bNeedBackup = false;
-    int rv = SAR_FAIL;
-    m_isApiInit = false;
+    int  rv          = SAR_FAIL;
+    m_isApiInit      = false;
     // 如果已经加载了库，断开重新加载
     if (m_libHandle != NULL) {
         // FreeLibrary(m_libHandle);
         m_libHandle = NULL;
         memset(&m_apiHandle, 0, sizeof(m_apiHandle));
     }
+
+    std::lock_guard<std::mutex> guard(s_mtxCache);
 
     auto iterFind = s_mapCache.find(libPathUTF8);
     if (iterFind != s_mapCache.end()) {
@@ -82,17 +84,17 @@ int SKFApiWin::initApi(const char *libPath) {
     }
 
     if (m_libHandle == NULL) {
-        LOG_ERROR("Load library failed, errCode %d, libpath %s",
-                  GetLastError(), libPathUTF8.c_str());
+        LOG_ERROR("Load library failed, errCode %d, libpath %s", GetLastError(), libPathUTF8.c_str());
         return SAR_FAIL;
     }
+    LOG_INFO("loadLibrary succ, path %s", libPathUTF8);
 
     do {
         loadFunc(SKF_EnumDev);
         loadFunc(SKF_ConnectDev);
         loadFunc(SKF_DisConnectDev);
         // loadFunc(SKF_ClearSecureState);
-        // loadFunc(SKF_RSASignData);
+        loadFunc(SKF_RSASignData);
         loadFunc(SKF_VerifyPIN);
         loadFunc(SKF_OpenApplication);
         loadFunc(SKF_EnumApplication);
@@ -105,7 +107,7 @@ int SKFApiWin::initApi(const char *libPath) {
         loadFunc(SKF_OpenContainer);
         loadFunc(SKF_EnumContainer);
         loadFunc(SKF_CloseContainer);
-        // loadFunc(SKF_GetContainerType);
+        loadFunc(SKF_GetContainerType);
         // loadFunc(SKF_ImportCertificate);
         loadFunc(SKF_ExportCertificate);
         loadFunc(SKF_ExportPublicKey);
@@ -133,8 +135,7 @@ int SKFApiWin::initApi(const char *libPath) {
 
         m_isApiInit = true;
         if (bNeedBackup) {
-            s_mapCache.insert(
-                std::pair<std::string, HMODULE>(libPathUTF8, m_libHandle));
+            s_mapCache.insert(std::pair<std::string, HMODULE>(libPathUTF8, m_libHandle));
             LOG_INFO("Load library succ, addr=0x%p", (uint64_t)m_libHandle);
         }
 
