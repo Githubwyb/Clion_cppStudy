@@ -45,7 +45,7 @@ if (MSVC)
 endif()
 
 # 先编译第三方库
-add_subdirectory(threepart)
+add_subdirectory(thirdparty)
 include_directories(include)
 # 设置lib子目录
 add_subdirectory(lib)
