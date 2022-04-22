@@ -9,6 +9,8 @@
 
 ## 编译说明
 
+### 1. makefile版本
+
 - 修改envrc
 
 ```shell
@@ -17,6 +19,10 @@ bash build.sh
 
 - 生成文件会存放在build目录下
 - 安装可以将build目录整体拷贝到一个地方，将`build/${BINNAME}`软连接到一个地方即可
+
+### 2. cmake版本
+
+- 已经写好CMakeLists.txt，可以直接使用cmake工具进行编译
 
 ## 目录说明
 

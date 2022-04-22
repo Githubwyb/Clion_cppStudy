@@ -74,20 +74,25 @@ static void log_hex(const void *data, int length) {
  */
 static void log_binary(const void *data, int length) {
 #define MAX_PRINTED_BIN_LENGTH (32)
-    const char *point = nullptr;
+    const unsigned char *point = NULL;
+    char out_str[128] = {0};
+    int index = 0;
     int i = 0;
 
-    point = (const char *)data;
+    point = (const unsigned char *)data;
 
     for (i = 0; i < length && i < MAX_PRINTED_BIN_LENGTH; i++) {
-        log_print("%02x ", point[i]);
+        snprintf(out_str + index, 4, "%02x ", point[i]);
+        index += 3;
     }
 
-    if (i >= MAX_PRINTED_BIN_LENGTH) {
-        log_print("......");
+    if (length > MAX_PRINTED_BIN_LENGTH) {
+        snprintf(out_str + index, 7, "......");
+        index += 6;
     }
+    snprintf(out_str + index, 3, "\r\n");
 
-    log_print("\r\n");
+    log_print("%s", out_str);
 }
 
 #define LOG_HEX(data, length) log_hex(data, length)
@@ -123,7 +128,7 @@ static const char *splitFileName(const char *fileName) {
  * 打印当前时间
  */
 static void print_currentTime() {
-    time_t currentTime = time(nullptr);
+    time_t currentTime = time(NULL);
     tm *currentTm = localtime(&currentTime);
     log_print("%4d-%02d-%02d %02d:%02d:%02d", currentTm->tm_year + 1900,
               currentTm->tm_mon + 1, currentTm->tm_mday, currentTm->tm_hour,

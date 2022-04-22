@@ -21,8 +21,8 @@
 # config
 !/config/
 
-# threepart
-!/threepart/
+# thirdparty
+!/thirdparty/
 
 # test
 !/test/
