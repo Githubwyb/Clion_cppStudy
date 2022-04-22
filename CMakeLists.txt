@@ -46,6 +46,7 @@ endif()
 
 # 先编译第三方库
 add_subdirectory(thirdparty)
+# 所有子目录包含include目录
 include_directories(include)
 # 设置lib子目录
 add_subdirectory(lib)

@@ -12,6 +12,8 @@
 #include <string.h>
 #include <time.h>
 
+#define NORMALIZE_LOG_ENABLE
+
 /**
  * 相当于printf的打印
  * @param fmt 格式化的数据
@@ -98,12 +100,40 @@ static void log_binary(const void *data, int length) {
 #define LOG_HEX(data, length) log_hex(data, length)
 #define LOG_BIN(data, length) log_binary(data, length)
 
+enum LOG_LEVEL { TRACE_LEVEL = 0, DBG_LEVEL = 1, INFO_LEVEL = 2, WARN_LEVEL = 3, ERR_LEVEL = 4 };
+
 #ifdef USE_SPDLOG
 
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 // 引入第三方库 spdlog
 #include "spdlog/spdlog.h"
+
+enum level_enum {
+    trace = SPDLOG_LEVEL_TRACE,
+    debug = SPDLOG_LEVEL_DEBUG,
+    info = SPDLOG_LEVEL_INFO,
+    warn = SPDLOG_LEVEL_WARN,
+    err = SPDLOG_LEVEL_ERROR,
+    critical = SPDLOG_LEVEL_CRITICAL,
+    off = SPDLOG_LEVEL_OFF,
+};
+
+#ifdef NORMALIZE_LOG_ENABLE
+
+#define NORMALIZE_LOG_API(level, ...) \
+    SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
+#define NORMALIZE_LOG_WITHCTX_API
+
+#include "normalize_log.hpp"
+
+#define LOGD(what) NORMALIZE_LOG_1(spdlog::level::debug, what);
+#define LOGI(what) NORMALIZE_LOG_1(spdlog::level::info, what);
+#define LOGW(what, reason, will) NORMALIZE_LOG_3(spdlog::level::warn, what, reason, will);
+#define LOGE(what, reason, will) NORMALIZE_LOG_3(spdlog::level::err, what, reason, will);
+
+#endif
+
 #define LOG_DEBUG SPDLOG_DEBUG
 #define LOG_INFO SPDLOG_INFO
 #define LOG_WARN SPDLOG_WARN
@@ -112,15 +142,18 @@ static void log_binary(const void *data, int length) {
 
 #else
 
+#define LOG_PRINT(fmt, ...)        \
+    log_print(fmt, ##__VA_ARGS__); \
+    log_print("\r\n")
+
 /**
  * 切分文件名，将前面的斜杠去除
  * @param fileName 文件名
  */
 static const char *splitFileName(const char *fileName) {
     const char *pChar = fileName;
-    pChar = (strrchr(pChar, '/')
-                 ? strrchr(pChar, '/') + 1
-                 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
+    pChar = (strrchr(pChar, '/') ? strrchr(pChar, '/') + 1
+                                 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
     return pChar;
 }
 
@@ -130,69 +163,86 @@ static const char *splitFileName(const char *fileName) {
 static void print_currentTime() {
     time_t currentTime = time(NULL);
     tm *currentTm = localtime(&currentTime);
-    log_print("%4d-%02d-%02d %02d:%02d:%02d", currentTm->tm_year + 1900,
-              currentTm->tm_mon + 1, currentTm->tm_mday, currentTm->tm_hour,
-              currentTm->tm_min, currentTm->tm_sec);
+    log_print("%4d-%02d-%02d %02d:%02d:%02d", currentTm->tm_year + 1900, currentTm->tm_mon + 1,
+              currentTm->tm_mday, currentTm->tm_hour, currentTm->tm_min, currentTm->tm_sec);
 }
 
 #define FileName(str) splitFileName(str)
+
+#ifdef NORMALIZE_LOG_ENABLE
+
+#define NORMALIZE_LOG_API(level, fmt, ...) log_print(fmt, ##__VA_ARGS__)
+#define NORMALIZE_LOG_WITHCTX_API
+
+#include "normalize_log.hpp"
+
+#define LOGD(what)                                                            \
+    print_currentTime();                                                      \
+    log_print(" [D][%s:%d %s] ", FileName(__FILE__), __LINE__, __FUNCTION__); \
+    NORMALIZE_LOG_1(INFO_LEVEL, what);                                        \
+    log_print("\r\n")
+#define LOGI(what)                                                            \
+    print_currentTime();                                                      \
+    log_print(" [I][%s:%d %s] ", FileName(__FILE__), __LINE__, __FUNCTION__); \
+    NORMALIZE_LOG_1(INFO_LEVEL, what);                                        \
+    log_print("\r\n")
+#define LOGW(what, reason, will)                                              \
+    print_currentTime();                                                      \
+    log_print(" [W][%s:%d %s] ", FileName(__FILE__), __LINE__, __FUNCTION__); \
+    NORMALIZE_LOG_3(INFO_LEVEL, what, reason, will);                          \
+    log_print("\r\n")
+#define LOGE(what, reason, will)                                              \
+    print_currentTime();                                                      \
+    log_print(" [E][%s:%d %s] ", FileName(__FILE__), __LINE__, __FUNCTION__); \
+    NORMALIZE_LOG_3(INFO_LEVEL, what, reason, will);                          \
+    log_print("\r\n")
+
+#endif
 
 #define DEBUG_LOG
 
 #ifdef DEBUG_LOG
 
-#define LOG_PRINT(fmt, ...)        \
-    log_print(fmt, ##__VA_ARGS__); \
+#define LOG_DEBUG(fmt, ...)                                                                      \
+    print_currentTime();                                                                         \
+    log_print(" [D][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_DEBUG(fmt, ...)                                        \
-    print_currentTime();                                           \
-    log_print(" [D][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_INFO(fmt, ...)                                                                       \
+    print_currentTime();                                                                         \
+    log_print(" [I][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_INFO(fmt, ...)                                         \
-    print_currentTime();                                           \
-    log_print(" [I][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_WARN(fmt, ...)                                                                       \
+    print_currentTime();                                                                         \
+    log_print(" [W][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_WARN(fmt, ...)                                         \
-    print_currentTime();                                           \
-    log_print(" [W][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_ERROR(fmt, ...)                                                                      \
+    print_currentTime();                                                                         \
+    log_print(" [E][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_ERROR(fmt, ...)                                        \
-    print_currentTime();                                           \
-    log_print(" [E][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
-    log_print("\r\n")
-#define LOG_FATAL(fmt, ...)                                        \
-    print_currentTime();                                           \
-    log_print(" [F][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_FATAL(fmt, ...)                                                                      \
+    print_currentTime();                                                                         \
+    log_print(" [F][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
 
 #else
 
 #define LOG_PRINT(fmt, ...)
 #define LOG_DEBUG(fmt, ...)
-#define LOG_INFO(fmt, ...)                                         \
-    print_currentTime();                                           \
-    log_print(" [I][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_INFO(fmt, ...)                                                                       \
+    print_currentTime();                                                                         \
+    log_print(" [I][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_WARN(fmt, ...)                                         \
-    print_currentTime();                                           \
-    log_print(" [W][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_WARN(fmt, ...)                                                                       \
+    print_currentTime();                                                                         \
+    log_print(" [W][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_ERROR(fmt, ...)                                        \
-    print_currentTime();                                           \
-    log_print(" [E][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_ERROR(fmt, ...)                                                                      \
+    print_currentTime();                                                                         \
+    log_print(" [E][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
-#define LOG_FATAL(fmt, ...)                                        \
-    print_currentTime();                                           \
-    log_print(" [F][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, \
-              __FUNCTION__, ##__VA_ARGS__);                        \
+#define LOG_FATAL(fmt, ...)                                                                      \
+    print_currentTime();                                                                         \
+    log_print(" [F][%s:%d %s] " fmt, FileName(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     log_print("\r\n")
 
 #endif /* DEBUG_LOG */

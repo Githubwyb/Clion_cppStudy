@@ -43,8 +43,13 @@ int main(int argC, char *argV[]) {
     // (void)BugReportRegister("run", ".", nullptr, nullptr);
     spdlog::set_level(spdlog::level::debug);  // Set global log level to debug
     // spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%@ %!] %v");
-    spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%s:%# %!] %v");
-    LOG_INFO("Hello, main");
+    // spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%P:%t][%L][%s:%# %!] %v");
+    LOGI(WHAT("Hello, main"));
+    LOGD(WHAT("aaaa {}", 1234));
+    LOGI(WHAT("aaaa {}", 1234));
+    LOGE(WHAT("get_svpn_rand"), REASON("hhh {}", 1), WILL("aaaaa"));
+    LOGW(WHAT("get_svpn_rand"), REASON("hhh {}", 0x1234), NO_WILL);
+
     string str = "\\xE6\\xB5\\x8B\\xE8\\xAF\\x95\\xE9\\x83\\xA8";
     LOG_DEBUG("{}", str);
     LOG_DEBUG("{}", convertStrToByte(str));

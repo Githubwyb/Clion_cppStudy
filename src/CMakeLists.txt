@@ -23,7 +23,7 @@ target_compile_definitions(${BIN_NAME} PRIVATE
 )
 
 # 给可执行文件编译设置头文件目录
-target_include_directories(${BIN_NAME} PRIVATE ./include ../include spdlog)
+target_include_directories(${BIN_NAME} PRIVATE ./include spdlog)
 
 # 给可执行文件添加动态链接库
 link_directories(${PROJECT_SOURCE_DIR}/build/output/lib) #添加动态连接库的路径
