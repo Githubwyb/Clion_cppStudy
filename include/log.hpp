@@ -69,6 +69,80 @@ static void log_hex(const void *data, int length) {
     }
 }
 
+#ifdef __cplusplus
+static const std::string getHexDumpStr(const uint8_t* data, uint32_t data_len) {
+    int left_len = ((data_len + 31) / 16) * 76;
+    if (data_len % 16 != 0) {
+        left_len -= (16 - data_len % 16);
+    }
+    std::string result(left_len, 0x00);
+
+    uint32_t i = 0, j = 0;
+    char*    index = &(result.front());
+    snprintf(index, left_len, "      ");
+    left_len -= 6;
+    index += 6;
+    for (i = 0; i < 16; i++) {
+        snprintf(index, left_len, "%X  ", i);
+        left_len -= 3;
+        index += 3;
+    }
+    snprintf(index, left_len, "    ");
+    left_len -= 4;
+    index += 4;
+    for (i = 0; i < 16; i++) {
+        snprintf(index, left_len, "%X", i);
+        left_len -= 1;
+        index += 1;
+    }
+
+    snprintf(index, left_len, "\r\n");
+    left_len -= 2;
+    index += 2;
+
+    for (i = 0; i < data_len; i += 16) {
+        snprintf(index, left_len, "%04d: ", i / 16);
+        left_len -= 6;
+        index += 6;
+
+        for (j = i; j < i + 16 && j < data_len; j++) {
+            snprintf(index, left_len, "%02x ", data[j]);
+            left_len -= 3;
+            index += 3;
+        }
+        if (j == data_len && data_len % 16) {
+            for (j = 0; j < (16 - data_len % 16); j++) {
+                snprintf(index, left_len, "   ");
+                left_len -= 3;
+                index += 3;
+            }
+        }
+
+        snprintf(index, left_len, "    ");
+        left_len -= 4;
+        index += 4;
+
+        for (j = i; j < i + 16 && j < data_len; j++) {
+            if (data[j] < 32 || data[j] >= 127) {
+                snprintf(index, left_len, ".");
+                left_len -= 1;
+                index += 1;
+            } else {
+                snprintf(index, left_len, "%c", data[j]);
+                left_len -= 1;
+                index += 1;
+            }
+        }
+
+        index[0] = '\r';
+        index[1] = '\n';
+        left_len -= 2;
+        index += 2;
+    }
+    return result;
+}
+#endif // __cplusplus
+
 /**
  * 以二进制显示数据
  * @param data 数据首地址

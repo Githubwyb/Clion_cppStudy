@@ -5,7 +5,11 @@
  * @version v2.0.0
  * @date 2020-12-16
  */
+#include <unistd.h>
+
+#include <boost/asio.hpp>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -17,26 +21,29 @@
 
 using namespace std;
 
-#define check0_f(x) \
-    ((x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F'))
+std::future<void> testFunc() {
+    boost::asio::io_context ioc;
+    boost::asio::io_context::work worker(ioc);
 
-std::string convertStrToByte(const std::string &str) {
-    string result;
-    size_t index = 0;
-    size_t strLen = str.length();
-    while (index < strLen) {
-        char tmp[2] = {0};
-        // bool parseOK = false;
-        if (str[index] == '\\' && index + 3 < strLen && str[index + 1] == 'x' &&
-            check0_f(str[index + 2]) && check0_f(str[index + 3]) &&
-            sscanf(&(str.front()) + index, "\\x%02hhx", &tmp) == 1) {
-            result += tmp;
-            index += 4;
-            continue;
-        }
-        result += str[index++];
-    }
-    return result;
+    auto f1 = std::async(std::launch::async, [&ioc]() {
+        ioc.run();
+        LOGI(WHAT("ioc exit"));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    });
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    std::promise<void> p;
+    // auto f = p.get_future();
+    int testValue = 0;
+    LOGI(WHAT("push task"));
+    ioc.post([&testValue, &p, &ioc]() {
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        testValue = 1;
+        p.set_value();
+    });
+    p.get_future().wait();
+    LOGI(WHAT("testValue {}", testValue));
+    return f1;
 }
 
 int main(int argC, char *argV[]) {
@@ -47,15 +54,28 @@ int main(int argC, char *argV[]) {
     LOGI(WHAT("Hello, main"));
     LOGD(WHAT("aaaa {}", 1234));
     LOGI(WHAT("aaaa {}", 1234));
+    LOGI(WHAT("aaaa {:#06x}", 1234));
     LOGE(WHAT("get_svpn_rand"), REASON("hhh {}", 1), WILL("aaaaa"));
     LOGW(WHAT("get_svpn_rand"), REASON("hhh {}", 0x1234), NO_WILL);
 
-    string str = "\\xE6\\xB5\\x8B\\xE8\\xAF\\x95\\xE9\\x83\\xA8";
-    LOG_DEBUG("{}", str);
-    LOG_DEBUG("{}", convertStrToByte(str));
-    str = "\\xEr\\xB5\\x8B\\xEz\\xA..\\xe9\\x03\\xA8";
-    LOG_DEBUG("{}", str);
-    auto result = convertStrToByte(str);
-    LOG_HEX(result.c_str(), result.length());
+    std::multimap<int, string> testMap;
+    testMap.insert(std::make_pair(6, "12"));
+    testMap.insert(std::make_pair(5, "123"));
+    testMap.insert(std::make_pair(5, "123"));
+    testMap.insert(std::make_pair(5, "1235"));
+    testMap.insert(std::make_pair(5, "12"));
+    testMap.insert(std::make_pair(4, "12"));
+    testMap.insert(std::make_pair(5, "1245"));
+
+    auto np = testMap.equal_range(5);
+    for (auto iter = np.first; iter != np.second; iter++) {
+        LOGI(WHAT("{} {}", iter->first, iter->second));
+    }
+
+    // auto f1 = testFunc();
+    // LOGI(WHAT("main end1"));
+    // std::future<void> f2 = std::move(f1);
+    // f2.wait();
+    // LOGI(WHAT("async end"));
     return 0;
 }
