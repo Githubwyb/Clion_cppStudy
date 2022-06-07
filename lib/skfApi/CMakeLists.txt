@@ -6,7 +6,7 @@ project(skfApi
 # aux_source_directory(<dir> <variable>) 将dir下面的所有源文件赋值给变量
 AUX_SOURCE_DIRECTORY(./src SRC_FILES)
 
-# 生成动态库，不带SHARED生成静态库
+# SHARED生成动态库，STATIC生成静态库
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
 
 target_compile_definitions(

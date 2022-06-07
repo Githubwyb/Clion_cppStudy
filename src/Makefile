@@ -17,15 +17,14 @@ INSTALL_TARGETDIR = $(APP_INSTALL)
 HEADERS =
 
 #链接库名，带上-l，-lsvpn 静态库填写绝对路径
-LIB += -pthread -ldl -lmylib #../threepart/libhv/lib/libhv.a -lcurl ../threepart/spdlog/build/libspdlog.a
+LIB += -pthread -ldl ../build/output/libspdlogd.a #-lmylib -lcurl  ../threepart/libhv/lib/libhv.a
 
 #引用头文件路径，带上-I， -I$(PREFIX_INC)
-INCLUDE += -I$(PREFIX_INC) -I./includes -I../threepart  -I../threepart/spdlog/include
+INCLUDE += -I$(PREFIX_INC) -I./include -I../thirdparty -I../thirdparty/spdlog/include
 
 CFLAGS += -DLINUX -Wall -Wshadow -std=c11
-CXXFLAGS += -DLINUX -Wall -Wshadow -std=c++14
+CXXFLAGS += -DLINUX -DUSE_SPDLOG -Wall -Wshadow -std=c++14
 LFLAGS +=
-
 
 #如果想增加all或者install的依赖性，可以设置下面变量的值，然后增加相应的目标依赖
 _all = _all

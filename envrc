@@ -5,7 +5,7 @@ export OUTPUTDIR="${PROJECTDIR}/build"
 export OUTPUTLIBDIR="${OUTPUTDIR}/lib"
 
 export MAKEFILEDIR="${PROJECTDIR}/makefiles"
-export PREFIX_INC="${PROJECTDIR}/includes"
+export PREFIX_INC="${PROJECTDIR}/include"
 export PREFIX_LIB="${OUTPUTLIBDIR}"
 
 export BINNAME="run"

@@ -70,6 +70,7 @@ static void log_hex(const void *data, int length) {
 }
 
 #ifdef __cplusplus
+#include <string>
 static const std::string getHexDumpStr(const uint8_t* data, uint32_t data_len) {
     int left_len = ((data_len + 31) / 16) * 76;
     if (data_len % 16 != 0) {
