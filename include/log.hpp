@@ -73,16 +73,12 @@ static void log_hex(const void *data, int length) {
 #include <iomanip>
 #include <sstream>
 static const std::string getHexDumpStr(const void *data, uint32_t data_len) {
-    auto pData = static_cast<const uint8_t *>(data);
-    int left_len = ((data_len + 31) / 16) * 76;
-    if (data_len % 16 != 0) {
-        left_len -= (16 - data_len % 16);
-    }
+    static const int firstColLen = 5;
+    static const int hexColLen = 3;
+    static const int asciiColLen = 1;
+    static const int middleColLen = 4;
 
-    int firstColLen = 5;
-    int hexColLen = 3;
-    int asciiColLen = 1;
-    int middleColLen = 4;
+    auto pData = static_cast<const uint8_t *>(data);
     std::stringstream ss;
 
     // 首行
