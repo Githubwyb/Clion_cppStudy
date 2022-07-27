@@ -70,79 +70,71 @@ static void log_hex(const void *data, int length) {
 }
 
 #ifdef __cplusplus
-#include <string>
-static const std::string getHexDumpStr(const uint8_t* data, uint32_t data_len) {
+#include <iomanip>
+#include <sstream>
+static const std::string getHexDumpStr(const void *data, uint32_t data_len) {
+    auto pData = static_cast<const uint8_t *>(data);
     int left_len = ((data_len + 31) / 16) * 76;
     if (data_len % 16 != 0) {
         left_len -= (16 - data_len % 16);
     }
-    std::string result(left_len, 0x00);
 
-    uint32_t i = 0, j = 0;
-    char*    index = &(result.front());
-    snprintf(index, left_len, "      ");
-    left_len -= 6;
-    index += 6;
-    for (i = 0; i < 16; i++) {
-        snprintf(index, left_len, "%X  ", i);
-        left_len -= 3;
-        index += 3;
+    int firstColLen = 5;
+    int hexColLen = 3;
+    int asciiColLen = 1;
+    int middleColLen = 4;
+    std::stringstream ss;
+
+    // 首行
+    ss << std::setw(firstColLen) << ""
+       << " ";
+    ss << std::uppercase << std::hex;
+    ss << std::left;
+    for (int i = 0; i < 16; i++) {
+        ss << std::setw(hexColLen) << i;
     }
-    snprintf(index, left_len, "    ");
-    left_len -= 4;
-    index += 4;
-    for (i = 0; i < 16; i++) {
-        snprintf(index, left_len, "%X", i);
-        left_len -= 1;
-        index += 1;
+    ss << std::right;
+    ss << std::setw(middleColLen) << "";
+    for (int i = 0; i < 16; i++) {
+        ss << std::setw(asciiColLen) << i;
     }
+    ss << std::nouppercase;
+    ss << std::endl;
 
-    snprintf(index, left_len, "\r\n");
-    left_len -= 2;
-    index += 2;
+    // 数据段
+    for (uint32_t i = 0; i < data_len; i += 16) {
+        // 前导地址
+        ss << std::hex << std::setfill('0');
+        ss << std::setw(firstColLen) << i << ":";
 
-    for (i = 0; i < data_len; i += 16) {
-        snprintf(index, left_len, "%04d: ", i / 16);
-        left_len -= 6;
-        index += 6;
-
+        // hex段
+        uint32_t j = 0;
         for (j = i; j < i + 16 && j < data_len; j++) {
-            snprintf(index, left_len, "%02x ", data[j]);
-            left_len -= 3;
-            index += 3;
+            ss << std::setw(2) << static_cast<uint16_t>(pData[j]) << " ";
         }
-        if (j == data_len && data_len % 16) {
-            for (j = 0; j < (16 - data_len % 16); j++) {
-                snprintf(index, left_len, "   ");
-                left_len -= 3;
-                index += 3;
-            }
+        // 不足补空格
+        ss << std::setfill(' ');
+        for (; j < i + 16; j++) {
+            ss << std::setw(hexColLen) << "";
         }
 
-        snprintf(index, left_len, "    ");
-        left_len -= 4;
-        index += 4;
+        // 分隔列
+        ss << std::setw(middleColLen) << "";
 
+        // ascii段
         for (j = i; j < i + 16 && j < data_len; j++) {
-            if (data[j] < 32 || data[j] >= 127) {
-                snprintf(index, left_len, ".");
-                left_len -= 1;
-                index += 1;
+            if (pData[j] < 32 || pData[j] >= 127) {
+                ss << ".";
             } else {
-                snprintf(index, left_len, "%c", data[j]);
-                left_len -= 1;
-                index += 1;
+                ss << static_cast<char>(pData[j]);
             }
         }
-
-        index[0] = '\r';
-        index[1] = '\n';
-        left_len -= 2;
-        index += 2;
+        ss << std::endl;
     }
-    return result;
+
+    return ss.str();
 }
-#endif // __cplusplus
+#endif  // __cplusplus
 
 /**
  * 以二进制显示数据
@@ -196,8 +188,7 @@ enum level_enum {
 
 #ifdef NORMALIZE_LOG_ENABLE
 
-#define NORMALIZE_LOG_API(level, ...) \
-    SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
+#define NORMALIZE_LOG_API(level, ...) SPDLOG_LOGGER_CALL(spdlog::default_logger_raw(), level, __VA_ARGS__)
 #define NORMALIZE_LOG_WITHCTX_API
 
 #include "normalize_log.hpp"
@@ -227,8 +218,7 @@ enum level_enum {
  */
 static const char *splitFileName(const char *fileName) {
     const char *pChar = fileName;
-    pChar = (strrchr(pChar, '/') ? strrchr(pChar, '/') + 1
-                                 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
+    pChar = (strrchr(pChar, '/') ? strrchr(pChar, '/') + 1 : (strrchr(pChar, '\\') ? strrchr(pChar, '\\') + 1 : pChar));
     return pChar;
 }
 
@@ -238,8 +228,8 @@ static const char *splitFileName(const char *fileName) {
 static void print_currentTime() {
     time_t currentTime = time(NULL);
     tm *currentTm = localtime(&currentTime);
-    log_print("%4d-%02d-%02d %02d:%02d:%02d", currentTm->tm_year + 1900, currentTm->tm_mon + 1,
-              currentTm->tm_mday, currentTm->tm_hour, currentTm->tm_min, currentTm->tm_sec);
+    log_print("%4d-%02d-%02d %02d:%02d:%02d", currentTm->tm_year + 1900, currentTm->tm_mon + 1, currentTm->tm_mday,
+              currentTm->tm_hour, currentTm->tm_min, currentTm->tm_sec);
 }
 
 #define FileName(str) splitFileName(str)
