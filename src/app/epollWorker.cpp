@@ -21,8 +21,11 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #include "log.hpp"
 
+namespace epollWorker {
 #define MAC_CONN_NUM 512
 #define EPOLL_TIMEOUT 1000  // 1000毫秒超时
 
@@ -74,8 +77,7 @@ int CreateAsyncTcpListener(int listenQ) {
     struct linger sLin;
     sLin.l_onoff = 1;
     sLin.l_linger = 0;
-    int ret =
-        setsockopt(tcplistenFd, SOL_SOCKET, SO_LINGER, &sLin, sizeof(sLin));
+    int ret = setsockopt(tcplistenFd, SOL_SOCKET, SO_LINGER, &sLin, sizeof(sLin));
     if (ret < 0) {
         LOG_ERROR("setsockopt so_linger failed {}", strerror(errno));
         close(tcplistenFd);
@@ -83,8 +85,7 @@ int CreateAsyncTcpListener(int listenQ) {
     }
     // 设置reuseaddr
     int lFlag = 1;
-    ret =
-        setsockopt(tcplistenFd, SOL_SOCKET, SO_REUSEADDR, &lFlag, sizeof(int));
+    ret = setsockopt(tcplistenFd, SOL_SOCKET, SO_REUSEADDR, &lFlag, sizeof(int));
     if (ret < 0) {
         LOG_ERROR("setsockopt so_reuseaddr failed {}", strerror(errno));
         close(tcplistenFd);
@@ -129,33 +130,26 @@ int CreateAsyncTcpListener(int listenQ) {
  * @return
  *     0 if success or -1 for error
  */
-int SetKeepAliveFD(int fd, int isKeepAlive, int idleTime, int sendInterval,
-                   int sendCount) {
-    int keepAlive = isKeepAlive;  // 开启keepalive属性
-    int keepIdle =
-        idleTime;  // 如该连接在idleTime秒内没有任何数据往来,则进行探测
+int SetKeepAliveFD(int fd, int isKeepAlive, int idleTime, int sendInterval, int sendCount) {
+    int keepAlive = isKeepAlive;      // 开启keepalive属性
+    int keepIdle = idleTime;          // 如该连接在idleTime秒内没有任何数据往来,则进行探测
     int keepInterval = sendInterval;  // 探测时发包的时间间隔为5 秒
-    int keepCount =
-        sendCount;  // 探测尝试的次数.如果第1次探测包就收到响应了,则后2次的不再发.
+    int keepCount = sendCount;  // 探测尝试的次数.如果第1次探测包就收到响应了,则后2次的不再发.
 
     int ret = 0;
-    ret = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepAlive,
-                     sizeof(keepAlive));
+    ret = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepAlive, sizeof(keepAlive));
     if (ret < 0) {
         return -1;
     }
-    ret = setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (void *)&keepIdle,
-                     sizeof(keepIdle));
+    ret = setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (void *)&keepIdle, sizeof(keepIdle));
     if (ret < 0) {
         return -1;
     }
-    ret = setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepInterval,
-                     sizeof(keepInterval));
+    ret = setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepInterval, sizeof(keepInterval));
     if (ret < 0) {
         return -1;
     }
-    ret = setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void *)&keepCount,
-                     sizeof(keepCount));
+    ret = setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void *)&keepCount, sizeof(keepCount));
     if (ret < 0) {
         return -1;
     }
@@ -212,8 +206,7 @@ void _DoHandleListenerMsg(struct epoll_event *ev) {
         LOG_ERROR("_DoRecvConnect epoll  EPOLLERR or EPOLLHUP, pipd will exit");
         return;  //错误发生，退出
     } else {
-        LOG_ERROR("listenfd {} unknown epoll events {}", (int)(ev->data.fd),
-                  (uint32_t)(ev->events));
+        LOG_ERROR("listenfd {} unknown epoll events {}", (int)(ev->data.fd), (uint32_t)(ev->events));
         return;
     }
 }
@@ -250,8 +243,7 @@ void _DoHandleMsg(struct epoll_event *ev) {
 
         iRet = epoll_ctl(g_iEpfd, EPOLL_CTL_DEL, socket, ev);
         if (iRet < 0) {
-            LOG_ERROR("_DoHandleMsg epoll del socket {} failed {}", socket,
-                      strerror(errno));
+            LOG_ERROR("_DoHandleMsg epoll del socket {} failed {}", socket, strerror(errno));
         }
         close(socket);
         socket = -1;
@@ -262,8 +254,7 @@ void serverRun() {
     int iMaxClient = 1000;
 
     //初始化epoll
-    g_iEpfd = epoll_create(iMaxClient * 2 +
-                           10);  //每个Worker处理最大用户数 *  2  + 10
+    g_iEpfd = epoll_create(iMaxClient * 2 + 10);  //每个Worker处理最大用户数 *  2  + 10
     if (-1 == g_iEpfd) {
         LOG_ERROR("svcauthd epoll_create socket error:{}", strerror(errno));
         return;
@@ -281,8 +272,7 @@ void serverRun() {
     int ret = epoll_ctl(g_iEpfd, EPOLL_CTL_ADD, listenFd,
                         &ev);  //将监听套接字加入epoll
     if (ret < 0) {
-        LOG_ERROR("[CPipdManager]_AddListener() epoll add failed error {}",
-                  errno);
+        LOG_ERROR("[CPipdManager]_AddListener() epoll add failed error {}", errno);
         return;
     }
 
@@ -310,7 +300,6 @@ void serverRun() {
     return;
 }
 
-#include <iostream>
 using namespace std;
 
 void clientRun() {
@@ -346,4 +335,5 @@ void clientRun() {
     return;
 }
 
+}  // namespace epollWorker
 #endif /* __linux__ */
