@@ -19,3 +19,6 @@ add_subdirectory(curl)
 
 # curlEngine
 add_subdirectory(curlEngine)
+
+# promise-cpp
+add_subdirectory(promise-cpp)

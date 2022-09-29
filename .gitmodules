@@ -10,3 +10,6 @@
 [submodule "thirdparty/curl"]
 	path = thirdparty/curl
 	url = git@gitee.com:giteewyb/curl.git
+[submodule "thirdparty/promise-cpp"]
+	path = thirdparty/promise-cpp
+	url = https://github.com/xhawk18/promise-cpp.git

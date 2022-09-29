@@ -19,7 +19,7 @@ set(Boost_USE_STATIC_LIBS ON)
 # REQUIRED: 必须找到，不然报错
 # COMPONENTS: 找到filesystem和system两个模块，模块路径会加到Boost_LIBRARIES变量中，不加模块此变量为空
 find_package(Boost 1.70 REQUIRED
-	COMPONENTS filesystem system
+    COMPONENTS system
 )
 
 # 将变量指定的源文件编译成可执行文件main
@@ -29,14 +29,20 @@ add_executable(${BIN_NAME} ${SRC_FILES})
 # add_definitions(-DUSE_SPDLOG)
 target_compile_definitions(${BIN_NAME} PRIVATE
     USE_SPDLOG
+    BOOST_STACKTRACE_USE_BACKTRACE
 )
 
 # 给可执行文件编译设置头文件目录
 target_include_directories(${BIN_NAME} PRIVATE
     ./include
     # 第三方库头文件
-    ${Boost_INCLUDE_DIR}
     spdlog
+)
+# 添加boost库的目录，不需要自己去选择模块
+target_link_directories(
+    ${BIN_NAME} PRIVATE
+    # 第三方库
+    ${Boost_LIBRARY_DIRS}
 )
 
 # 给可执行文件添加动态链接库
@@ -50,6 +56,7 @@ target_link_libraries(
     # 系统库
     pthread
     dl
+    backtrace
     # 自定义库
     ${LIB_NAME}
 )

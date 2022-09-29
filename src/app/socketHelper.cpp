@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 #include "log.hpp"
 
@@ -66,7 +67,7 @@ int clientInitPort(const char *ip, int port) {
 
 #define SEND_FD_NUM 1  // 可以一次发送多个文件描述符
 void sendFd(int clientFd) {
-    /********** 1. 和待接受的进程建立连接 **********/
+    /********** 1. 和待接收的进程建立连接 **********/
     // 必须使用unix套接字才能进行文件描述符发送
     auto fd = clientInitUnix(serverPath);
     if (fd < 0) {
@@ -113,14 +114,14 @@ void sendFd(int clientFd) {
 int recvFd(int clientFd) {
     /********** 1. 构建msg进行接收文件描述符 **********/
     struct msghdr msg = {0};
-    // 这里留下可接受的空间即可，其他不用设置
+    // 这里留下可接收的空间即可，其他不用设置
     union {
         struct cmsghdr cm;
-        char control[CMSG_SPACE(sizeof(clientFd))];  // 只接受一个文件描述符，所以只需要一个空间
+        char control[CMSG_SPACE(sizeof(clientFd))];  // 只接收一个文件描述符，所以只需要一个空间
     } control_un;
     msg.msg_control = control_un.control;
     msg.msg_controllen = sizeof(control_un.control);
-    // 这里使用同样的或者更大的内存进行接受都可以，但是必须分配内存进行接受
+    // 这里使用同样的或者更大的内存进行接收都可以，但是必须分配内存进行接收
     struct iovec vec = {0};
     unsigned char data = 0;
     vec.iov_base = &data;
@@ -129,7 +130,7 @@ int recvFd(int clientFd) {
     msg.msg_iovlen = 1;
     LOG_DEBUG("msg_controllen {}, control_un.cm.cmsg_len {}", msg.msg_controllen, control_un.cm.cmsg_len);
 
-    /********** 3. 接受文件描述符 **********/
+    /********** 3. 接收文件描述符 **********/
     auto ret = recvmsg(clientFd, &msg, 0);
     if (ret < 0) {
         LOG_ERROR("recvmsg error");
@@ -210,7 +211,7 @@ int serverInitUnix(const char *unixPath) {
 
 void serverRun(int serverFd, std::function<void(int)> handler) {
     while (true) {
-        /********** 1. 接受客户端连接 **********/
+        /********** 1. 接收客户端连接 **********/
         sockaddr_in clientAddr = {0};
         socklen_t clientAddrLen = sizeof(clientAddr);
         // 下面函数会直接阻塞，直到有客户端连接进来。后两个参数用于获取客户端的地址信息
