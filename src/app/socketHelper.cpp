@@ -49,6 +49,7 @@ int clientInitPort(const char *ip, int port) {
         LOG_ERROR("socket error");
         return -1;
     }
+    setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE)
 
     /********** 2. 连接服务器 **********/
     struct sockaddr_in addr = {0};

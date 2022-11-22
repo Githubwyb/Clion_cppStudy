@@ -47,7 +47,7 @@ static void log_hex(const void *data, int length) {
     log_print("\r\n");
 
     for (i = 0; i < length; i += 16) {
-        log_print("%02d  ", i / 16 + 1);
+        log_print("%02x  ", i / 16);
         for (j = i; j < i + 16 && j < length; j++) {
             log_print("%02x ", pData[j] & 0xff);
         }

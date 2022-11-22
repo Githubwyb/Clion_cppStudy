@@ -69,10 +69,6 @@ struct ip_address {
 };
 
 // 定义各种类型操作符
-static bool operator==(const ip_address& lhs, const ip_address& rhs) {
-    if (lhs.type != rhs.type) return false;
-    return !memcmp(&lhs.ip, &rhs.ip, (lhs.type == ip_type::ipv4) ? sizeof(rhs.ip.v4) : sizeof(rhs.ip.v6));
-}
 static bool operator<(const ip_address& A, const ip_address& B) {
     // 类型不等，ipv4 < ipv6
     if (A.type != B.type) {
@@ -96,7 +92,8 @@ static bool operator<(const ip_address& A, const ip_address& B) {
     }
     return false;
 }
-static bool operator!=(const ip_address& lhs, const ip_address& rhs) { return !(lhs == rhs); }
+static bool operator!=(const ip_address& lhs, const ip_address& rhs) { return lhs < rhs || rhs < lhs; }
+static bool operator==(const ip_address& lhs, const ip_address& rhs) { return !(lhs != rhs); }
 static bool operator<=(const ip_address& lhs, const ip_address& rhs) { return (lhs < rhs) || (lhs == rhs); }
 static bool operator>(const ip_address& lhs, const ip_address& rhs) { return !(lhs <= rhs); }
 static bool operator>=(const ip_address& lhs, const ip_address& rhs) { return !(lhs < rhs); }
@@ -178,6 +175,25 @@ static ip_address operator--(ip_address& ip, int) {
     auto tmp = ip;
     --ip;
     return tmp;
+}
+
+static std::string& operator<<(std::string& out, const ip_address& ip) {
+    if (ip.type == ip_type::ipv4) {
+        out += (std::to_string(ip.ip.uv4[0]) + "." + std::to_string(ip.ip.uv4[1]) + "." + std::to_string(ip.ip.uv4[2]) +
+                "." + std::to_string(ip.ip.uv4[3]));
+        return out;
+    }
+    std::stringstream ss;
+    ss << std::hex;
+    for (auto i = 0; i < sizeof(ip.ip.uv6); i += 2) {
+        if (i > 0) {
+            ss << ":";
+        }
+        ss << std::setfill('0') << std::setw(2) << static_cast<uint16_t>(ip.ip.uv6[i]);
+        ss << std::setfill('0') << std::setw(2) << static_cast<uint16_t>(ip.ip.uv6[i + 1]);
+    }
+    out += ss.str();
+    return out;
 }
 
 // std::cout << ip 和 std::cout << ip << std::endl

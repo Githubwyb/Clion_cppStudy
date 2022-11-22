@@ -53,6 +53,7 @@ target_link_libraries(
     # 第三方库
     spdlog
     ${Boost_LIBRARIES}
+    promise
     # 系统库
     pthread
     dl
