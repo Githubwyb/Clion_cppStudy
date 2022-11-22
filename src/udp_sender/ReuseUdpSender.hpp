@@ -27,8 +27,8 @@
  * @date 2022-11-04
  */
 
-#ifndef SDP_UDPSENDER_HPP
-#define SDP_UDPSENDER_HPP
+#ifndef REUSEUDPSENDER_HPP
+#define REUSEUDPSENDER_HPP
 
 #include <memory>
 
@@ -42,7 +42,6 @@
 #include <utilities/AsioUdpHelper.hpp>
 #include <utilities/ec_to_string.hpp>
 
-namespace sangfor {
 namespace asio {
 class ReuseUdpSender;
 using ReuseUdpSenderPtr = std::shared_ptr<ReuseUdpSender>;
@@ -175,6 +174,5 @@ private:
 };
 
 }  // namespace asio
-}  // namespace sangfor
 
-#endif  // SDP_UDPSENDER_HPP
+#endif  // UDPSENDER_HPP

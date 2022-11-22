@@ -57,7 +57,6 @@
 #include <utilities/AsioUdpHelper.hpp>
 #include <utilities/ec_to_string.hpp>
 
-namespace sangfor {
 namespace asio {
 
 // Class to manage the memory to be used for handler-based custom allocation.
@@ -319,4 +318,3 @@ private:
     int m_timeout;  ///< 超时时间，ms级别，小于等于0就会一直等待收到数据
 };
 }  // namespace asio
-}  // namespace sangfor
