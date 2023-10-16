@@ -57,7 +57,8 @@ target_link_libraries(
     # 系统库
     pthread
     dl
-    backtrace
+    # backtrace
     # 自定义库
     ${LIB_NAME}
+    mylib
 )
