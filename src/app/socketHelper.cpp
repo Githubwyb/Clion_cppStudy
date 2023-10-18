@@ -133,7 +133,7 @@ int recvFd(int clientFd) {
     /********** 3. 接收文件描述符 **********/
     auto ret = recvmsg(clientFd, &msg, 0);
     if (ret < 0) {
-        LOG_ERROR("recvmsg error");
+        LOG_ERROR("recvmsg error, {}:{}", errno, strerror(errno));
         return -1;
     }
 

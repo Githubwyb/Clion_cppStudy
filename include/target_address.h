@@ -94,10 +94,17 @@ static std::string toStringWithoutPort(const target_address& target) {
 namespace std {
 static inline string to_string(const target_address& target) { return targetAddress::toString(target); }
 
+/**
+ * @brief 构建target_address
+ *
+ * @param ip
+ * @param port 端口，传入主机字节序即可
+ * @return target_address
+ */
 static target_address to_target(const ip_address& ip, uint16_t port) {
     target_address target;
     target.type = TARGET_IP;
-    target.port = port;
+    target.port = htons(port);
     target.target.ip = ip;
     return target;
 }

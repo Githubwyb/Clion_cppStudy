@@ -19,8 +19,9 @@ set(Boost_USE_STATIC_LIBS ON)
 # REQUIRED: 必须找到，不然报错
 # COMPONENTS: 找到filesystem和system两个模块，模块路径会加到Boost_LIBRARIES变量中，不加模块此变量为空
 find_package(Boost 1.70 REQUIRED
-    COMPONENTS system
+    COMPONENTS system thread chrono
 )
+find_package(OpenSSL 1.1.1 REQUIRED)
 
 # 将变量指定的源文件编译成可执行文件main
 add_executable(${BIN_NAME} ${SRC_FILES})
@@ -37,6 +38,7 @@ target_include_directories(${BIN_NAME} PRIVATE
     ./include
     # 第三方库头文件
     spdlog
+    ${OPENSSL_INCLUDE_DIR}
 )
 # 添加boost库的目录，不需要自己去选择模块
 target_link_directories(
@@ -53,12 +55,12 @@ target_link_libraries(
     # 第三方库
     spdlog
     ${Boost_LIBRARIES}
-    promise
+    ${OPENSSL_LIBRARIES}
     # 系统库
     pthread
     dl
     # backtrace
     # 自定义库
     ${LIB_NAME}
-    mylib
+    libcurl
 )

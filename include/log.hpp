@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <bits/stdint-intn.h>
+#include <bits/stdint-uintn.h>
 
 #define NORMALIZE_LOG_ENABLE
 

@@ -81,6 +81,9 @@
         "span": "cpp",
         "typeindex": "cpp",
         "*.ipp": "cpp",
-        "hash_set": "cpp"
+        "hash_set": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "stdfloat": "cpp"
     },
 }

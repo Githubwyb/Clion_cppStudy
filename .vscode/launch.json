@@ -13,7 +13,16 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/home/wangyubo/work/src/git/sdp/sdp-third-party/openssl/1.1.1"
+                },
+                {
+                    "name": "OPENSSL_ENGINES",
+                    "value": "/home/wangyubo/work/src/git/sdp/sdp-third-party/openssl/1.1.1/my-engine/build"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
